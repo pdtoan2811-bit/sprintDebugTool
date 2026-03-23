@@ -88,7 +88,7 @@ export default function Home() {
     async function loadData() {
       setLoading(true);
       try {
-        const logs = await fetchLogs(activeSprint || undefined);
+        const logs = await fetchLogs(); // Fetch all logs to prevent backend date-range truncation
         if (!ignore) {
           setRawLogs(logs);
           const segments = transformLogsToSegments(logs);
@@ -111,7 +111,18 @@ export default function Home() {
   }, [activeSprint]);
 
   // ── Workflow Analysis ──────────────────────────────────────────
-  const analyses = useMemo(() => analyzeAllTasks(rawLogs, notes), [rawLogs, notes]);
+  const analyses = useMemo(() => {
+    const all = analyzeAllTasks(rawLogs, notes);
+    if (!activeSprint || activeSprint === 'auto') return all;
+    
+    const filtered: Record<string, typeof all[string]> = {};
+    for (const [id, a] of Object.entries(all)) {
+      if (String(a.sprint) === String(activeSprint)) {
+        filtered[id] = a;
+      }
+    }
+    return filtered;
+  }, [rawLogs, notes, activeSprint]);
   const personSummaries = useMemo(() => getPersonSummaries(rawLogs, analyses), [rawLogs, analyses]);
   const allPersons = useMemo(
     () => Array.from(new Set(data.map((d) => d.person))).sort(),
