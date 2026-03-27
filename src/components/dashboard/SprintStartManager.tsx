@@ -227,7 +227,7 @@ export function SprintStartManager({
     const SortHeader = ({ label, sortKeyName, className = '' }: { label: string; sortKeyName: SortKey; className?: string }) => (
         <button
             onClick={() => toggleSort(sortKeyName)}
-            className={`flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold cursor-pointer hover:text-zinc-200 transition-colors ${sortKey === sortKeyName ? 'text-blue-400' : 'text-zinc-500'} ${className}`}
+            className={`flex items-center gap-1 text-[10px] uppercase tracking-widest font-black cursor-pointer hover:text-foreground transition-colors ${sortKey === sortKeyName ? 'text-indigo-600 dark:text-indigo-400' : 'text-muted-foreground'} ${className}`}
         >
             {label}
             <ArrowUpDown className="w-2.5 h-2.5" />
@@ -236,9 +236,9 @@ export function SprintStartManager({
 
     if (!selectedSprint) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 text-zinc-500">
-                <Flag className="w-12 h-12 mb-4 opacity-50" />
-                <p className="text-sm">Select a sprint to view its starting status snapshot</p>
+            <div className="flex flex-col items-center justify-center h-64 text-muted-foreground bg-secondary/20 rounded-xl border border-border/50">
+                <Flag className="w-12 h-12 mb-4 opacity-20" />
+                <p className="text-sm font-bold">Select a sprint to view its starting status snapshot</p>
             </div>
         );
     }
@@ -246,21 +246,21 @@ export function SprintStartManager({
     return (
         <div className="space-y-4">
             {/* Header Section */}
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-zinc-950/50 rounded-xl border border-zinc-800/50">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-secondary/40 rounded-xl border border-border/50 shadow-sm">
                 <div>
-                    <h3 className="text-sm font-semibold text-zinc-200 flex items-center gap-2">
-                        <Flag className="w-4 h-4 text-blue-400" />
+                    <h3 className="text-sm font-black text-foreground flex items-center gap-2 tracking-tight">
+                        <Flag className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                         Sprint {selectedSprint} Starting Status
                     </h3>
-                    <p className="text-xs text-zinc-500 mt-1">
-                        Auto-detected from earliest log entry per task where sprint and status are set
+                    <p className="text-[11px] text-muted-foreground mt-1 font-medium">
+                        Auto-detected from earliest log entry where sprint and status are set
                     </p>
                 </div>
                 <div className="flex gap-2">
                     {stats.overridden > 0 && (
                         <button
                             onClick={handleClearAllOverrides}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-md transition-colors"
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground text-[10px] font-black uppercase tracking-wider rounded-lg border border-border transition-all active:scale-95 shadow-sm"
                         >
                             <RotateCcw className="w-3 h-3" />
                             Reset All
@@ -268,14 +268,14 @@ export function SprintStartManager({
                     )}
                     <button
                         onClick={handleSyncToLark}
-                        className="flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-md transition-colors shadow-lg shadow-indigo-900/30"
+                        className="flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-all active:scale-95 shadow-sm shadow-indigo-200 dark:shadow-indigo-900/40 border border-indigo-500/30"
                     >
                         <CloudSync className="w-3.5 h-3.5" />
                         Sync to Lark
                     </button>
                     <button
                         onClick={handleConfirmAll}
-                        className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-md transition-colors shadow-lg shadow-blue-900/30"
+                        className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-all active:scale-95 shadow-sm shadow-blue-200 dark:shadow-blue-900/40 border border-blue-500/30"
                     >
                         <Save className="w-3 h-3" />
                         Confirm All
@@ -287,50 +287,38 @@ export function SprintStartManager({
             <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
                 {/* Search */}
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search tasks..."
-                        className="pl-9 pr-3 py-2 bg-zinc-900 border border-zinc-700 text-zinc-200 text-sm rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 w-64"
+                        className="pl-9 pr-3 py-2 bg-background border border-border text-foreground text-xs rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 w-64 shadow-sm"
                     />
                 </div>
 
                 <div className="flex items-center gap-3 flex-wrap">
                     {/* Status Filter */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        <Filter className="w-3.5 h-3.5 text-zinc-500" />
+                        <Filter className="w-3.5 h-3.5 text-muted-foreground/50" />
                         <button
                             onClick={() => setStatusFilter('all')}
-                            className={`px-2.5 py-1 text-xs rounded-md transition-colors ${statusFilter === 'all'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                            className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all shadow-sm ${statusFilter === 'all'
+                                ? 'bg-indigo-600 text-white shadow-indigo-100 dark:shadow-indigo-900/40'
+                                : 'bg-secondary text-muted-foreground hover:bg-muted hover:text-foreground border border-border/50'
                                 }`}
                         >
                             All ({stats.total})
                         </button>
                         <button
                             onClick={() => setStatusFilter('overridden')}
-                            className={`px-2.5 py-1 text-xs rounded-md transition-colors ${statusFilter === 'overridden'
-                                ? 'bg-amber-600 text-white'
-                                : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                            className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all shadow-sm ${statusFilter === 'overridden'
+                                ? 'bg-amber-600 text-white shadow-amber-100 dark:shadow-amber-900/40'
+                                : 'bg-secondary text-muted-foreground hover:bg-muted hover:text-foreground border border-border/50'
                                 }`}
                         >
                             Overridden ({stats.overridden})
                         </button>
-                        {Object.entries(stats.statusCounts).slice(0, 4).map(([status, count]) => (
-                            <button
-                                key={status}
-                                onClick={() => setStatusFilter(status)}
-                                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${statusFilter === status
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-                                    }`}
-                            >
-                                {status} ({count})
-                            </button>
-                        ))}
                     </div>
 
                     {/* Bulk Actions */}
@@ -338,26 +326,28 @@ export function SprintStartManager({
                         <div className="relative">
                             <button
                                 onClick={() => setShowBulkMenu(!showBulkMenu)}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded-md transition-colors"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-all shadow-sm active:scale-95 border border-amber-500/30"
                             >
                                 <Edit3 className="w-3 h-3" />
                                 Bulk Edit ({selectedTaskIds.size})
                                 <ChevronDown className="w-3 h-3" />
                             </button>
                             {showBulkMenu && (
-                                <div className="absolute right-0 top-full mt-1 z-50 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 min-w-[180px]">
-                                    <div className="px-3 py-1.5 text-[10px] text-zinc-500 uppercase tracking-wider font-semibold border-b border-zinc-800">
+                                <div className="absolute right-0 top-full mt-1 z-50 bg-card border border-border rounded-xl shadow-xl py-1 min-w-[180px] animate-in fade-in slide-in-from-top-2">
+                                    <div className="px-3 py-2 text-[9px] text-muted-foreground uppercase tracking-widest font-black border-b border-border/50 text-center">
                                         Set Confirmed Status To
                                     </div>
-                                    {STATUS_OPTIONS.map(status => (
-                                        <button
-                                            key={status}
-                                            onClick={() => handleBulkStatusChange(status)}
-                                            className="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-zinc-800 transition-colors"
-                                        >
-                                            {status}
-                                        </button>
-                                    ))}
+                                    <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
+                                        {STATUS_OPTIONS.map(status => (
+                                            <button
+                                                key={status}
+                                                onClick={() => handleBulkStatusChange(status)}
+                                                className="w-full text-left px-4 py-2 text-[10px] font-bold text-foreground hover:bg-muted transition-colors"
+                                            >
+                                                {status}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -367,18 +357,18 @@ export function SprintStartManager({
 
             {/* Tasks Table */}
             {localEntries.length > 0 ? (
-                <div className="overflow-x-auto border border-zinc-800/50 rounded-xl">
+                <div className="overflow-x-auto border border-border/50 rounded-xl shadow-sm bg-card">
                     {/* Table Header */}
                     <table className="w-full min-w-[1100px] table-fixed">
                         <thead>
-                            <tr className="bg-zinc-900/50 border-b border-zinc-800/50">
+                            <tr className="bg-muted/50 border-b border-border/50">
                                 <th className="w-[40px] px-2 py-3">
                                     <button
                                         onClick={toggleSelectAll}
-                                        className="flex justify-center text-zinc-500 hover:text-zinc-300 w-full"
+                                        className="flex justify-center text-muted-foreground/50 hover:text-foreground w-full transition-colors"
                                     >
                                         {selectedTaskIds.size === filteredAndSortedEntries.length && filteredAndSortedEntries.length > 0 ? (
-                                            <CheckSquare className="w-4 h-4 text-blue-400" />
+                                            <CheckSquare className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                                         ) : (
                                             <Square className="w-4 h-4" />
                                         )}
@@ -403,19 +393,19 @@ export function SprintStartManager({
                                     <SortHeader label="Confirmed" sortKeyName="confirmedStatus" />
                                 </th>
                                 <th className="w-[50px] px-2 py-3 text-center">
-                                    <span className="text-[10px] uppercase tracking-wider font-semibold text-zinc-500">Diff</span>
+                                    <span className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">Diff</span>
                                 </th>
                                 <th className="w-[50px] px-2 py-3 text-center">
-                                    <span className="text-[10px] uppercase tracking-wider font-semibold text-zinc-500">Link</span>
+                                    <span className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">Link</span>
                                 </th>
                             </tr>
                         </thead>
                     </table>
 
                     {/* Table Body */}
-                    <div className="max-h-[500px] overflow-y-auto">
+                    <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
                         <table className="w-full min-w-[1100px] table-fixed">
-                            <tbody className="divide-y divide-zinc-900/50">
+                            <tbody className="divide-y divide-border/40">
                                 {filteredAndSortedEntries.map(entry => {
                                     const isSelected = selectedTaskIds.has(entry.taskId);
                                     const persons = entry.person ? entry.person.split(',').map(p => p.trim()).filter(Boolean) : [];
@@ -424,20 +414,20 @@ export function SprintStartManager({
                                         <tr
                                             key={entry.taskId}
                                             className={`transition-all ${entry.isOverridden
-                                                ? 'bg-amber-950/20 border-l-2 border-amber-500'
+                                                ? 'bg-amber-50/50 dark:bg-amber-950/20 border-l-2 border-amber-500'
                                                 : isSelected
-                                                    ? 'bg-blue-950/20'
-                                                    : 'hover:bg-zinc-800/30'
+                                                    ? 'bg-indigo-50/50 dark:bg-indigo-950/20'
+                                                    : 'hover:bg-muted/50'
                                                 }`}
                                         >
                                             {/* Checkbox */}
                                             <td className="w-[40px] px-2 py-3 align-top">
                                                 <button
                                                     onClick={() => toggleTaskSelection(entry.taskId)}
-                                                    className="flex justify-center text-zinc-500 hover:text-zinc-300 w-full pt-1"
+                                                    className="flex justify-center text-muted-foreground/40 hover:text-foreground w-full pt-1 transition-colors"
                                                 >
                                                     {isSelected ? (
-                                                        <CheckSquare className="w-4 h-4 text-blue-400" />
+                                                        <CheckSquare className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                                                     ) : (
                                                         <Square className="w-4 h-4" />
                                                     )}
@@ -446,12 +436,12 @@ export function SprintStartManager({
 
                                             {/* Task ID */}
                                             <td className="w-[110px] px-3 py-3 align-top">
-                                                <span className="font-mono text-[11px] text-zinc-400 break-all">{entry.taskId}</span>
+                                                <span className="font-mono text-[11px] text-muted-foreground font-bold break-all tracking-tight opacity-70">{entry.taskId}</span>
                                             </td>
 
                                             {/* Task Name - Wrapping enabled */}
                                             <td className="w-[280px] px-3 py-3 align-top">
-                                                <span className="text-xs text-zinc-200 break-words leading-relaxed">
+                                                <span className="text-xs text-foreground font-semibold break-words leading-relaxed group-hover:text-primary transition-colors">
                                                     {entry.taskName}
                                                 </span>
                                             </td>
@@ -463,36 +453,36 @@ export function SprintStartManager({
                                                         {persons.map((person, idx) => (
                                                             <span
                                                                 key={idx}
-                                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-[11px] text-zinc-200"
+                                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary border border-border text-[10px] font-bold text-muted-foreground uppercase tracking-tight"
                                                             >
-                                                                <User className="w-2.5 h-2.5 text-zinc-500" />
+                                                                <User className="w-2.5 h-2.5 text-muted-foreground/50" />
                                                                 {person}
                                                             </span>
                                                         ))}
                                                     </div>
                                                 ) : (
-                                                    <span className="text-xs text-zinc-600">—</span>
+                                                    <span className="text-[10px] text-muted-foreground/30 font-bold">—</span>
                                                 )}
                                             </td>
 
                                             {/* Module */}
                                             <td className="w-[100px] px-3 py-3 align-top">
-                                                <span className="text-[11px] text-zinc-400 break-words">
+                                                <span className="text-[10px] text-muted-foreground font-bold break-words opacity-60">
                                                     {entry.module || '—'}
                                                 </span>
                                             </td>
 
                                             {/* Auto-Detected Status */}
                                             <td className="w-[140px] px-3 py-3 align-top">
-                                                <div className="flex flex-col gap-1">
+                                                <div className="flex flex-col gap-1.5 font-bold">
                                                     <span 
-                                                        className="text-[10px] px-2 py-1 rounded bg-zinc-800 text-zinc-400 border border-zinc-700 inline-block w-fit"
+                                                        className="text-[9px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border/50 inline-block w-fit uppercase tracking-tight"
                                                         title={entry.autoDetectedStatus}
                                                     >
                                                         {entry.autoDetectedStatus}
                                                     </span>
                                                     <span 
-                                                        className="text-[9px] text-zinc-600 flex items-center gap-1" 
+                                                        className="text-[9px] text-muted-foreground/40 flex items-center gap-1 font-mono" 
                                                         title={format(new Date(entry.autoDetectedTimestamp), 'PPpp')}
                                                     >
                                                         <Clock className="w-2.5 h-2.5" />
@@ -506,9 +496,9 @@ export function SprintStartManager({
                                                 <select
                                                     value={entry.confirmedStatus}
                                                     onChange={(e) => handleLocalStatusChange(entry.taskId, e.target.value)}
-                                                    className={`text-[11px] px-2 py-1.5 rounded border focus:outline-none focus:ring-1 focus:ring-blue-500 w-full ${entry.isOverridden
-                                                        ? 'bg-amber-950/50 text-amber-300 border-amber-700'
-                                                        : 'bg-zinc-800 text-zinc-300 border-zinc-700'
+                                                    className={`text-[11px] font-bold px-2 py-1.5 rounded-lg border focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full transition-all shadow-sm ${entry.isOverridden
+                                                        ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-700'
+                                                        : 'bg-background text-foreground border-border'
                                                         }`}
                                                 >
                                                     {STATUS_OPTIONS.map(status => (
@@ -519,36 +509,38 @@ export function SprintStartManager({
 
                                             {/* Override Indicator / Reset */}
                                             <td className="w-[50px] px-2 py-3 align-top">
-                                                <div className="flex justify-center pt-1">
+                                                <div className="flex justify-center pt-1.5">
                                                     {entry.isOverridden ? (
                                                         <button
                                                             onClick={() => handleResetToAuto(entry.taskId)}
-                                                            className="text-amber-400 hover:text-amber-300 transition-colors"
+                                                            className="text-amber-600 dark:text-amber-400 hover:scale-110 transition-transform"
                                                             title="Reset to auto-detected"
                                                         >
                                                             <RotateCcw className="w-3.5 h-3.5" />
                                                         </button>
                                                     ) : (
-                                                        <Check className="w-3.5 h-3.5 text-green-600" />
+                                                        <div className="w-4 h-4 rounded-full bg-emerald-100 dark:bg-emerald-950/30 flex items-center justify-center">
+                                                            <Check className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
+                                                        </div>
                                                     )}
                                                 </div>
                                             </td>
 
                                             {/* Record Link */}
                                             <td className="w-[50px] px-2 py-3 align-top">
-                                                <div className="flex justify-center pt-1">
+                                                <div className="flex justify-center pt-1.5">
                                                     {entry.recordLink ? (
                                                         <a
                                                             href={entry.recordLink}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="text-blue-400 hover:text-blue-300 transition-colors"
+                                                            className="text-indigo-600 dark:text-indigo-400 hover:scale-110 transition-transform"
                                                             title="Open in source system"
                                                         >
                                                             <ExternalLink className="w-3.5 h-3.5" />
                                                         </a>
                                                     ) : (
-                                                        <span className="text-zinc-700">—</span>
+                                                        <span className="text-muted-foreground/30 font-bold">—</span>
                                                     )}
                                                 </div>
                                             </td>
@@ -560,13 +552,13 @@ export function SprintStartManager({
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center h-48 text-zinc-500 bg-zinc-950/30 rounded-xl border border-zinc-800/50">
-                    <Flag className="w-10 h-10 mb-3 opacity-50" />
-                    <p className="text-sm">No tasks found for Sprint {selectedSprint}</p>
-                    <p className="text-xs mt-1 text-zinc-600">
+                <div className="flex flex-col items-center justify-center h-48 text-muted-foreground bg-secondary/20 rounded-xl border border-border/50 shadow-inner">
+                    <Flag className="w-10 h-10 mb-3 opacity-20" />
+                    <p className="text-sm font-bold">No tasks found for Sprint {selectedSprint}</p>
+                    <p className="text-[10px] mt-1 opacity-60 px-8 text-center max-w-md font-medium leading-relaxed">
                         {rawLogs.length === 0 
                             ? 'No log data loaded yet - waiting for API response'
-                            : `${rawLogs.length} logs loaded, but none match the sprint start criteria (sprint=${selectedSprint} with non-empty status)`
+                            : `${rawLogs.length} logs loaded, but none match the criteria for sprint ${selectedSprint}.`
                         }
                     </p>
                 </div>
@@ -574,14 +566,14 @@ export function SprintStartManager({
 
             {/* Summary Stats */}
             {localEntries.length > 0 && (
-                <div className="flex flex-wrap gap-3 text-xs text-zinc-500">
-                    <span>Total: <span className="text-zinc-300 font-mono">{stats.total}</span> tasks</span>
-                    <span>|</span>
-                    <span>Overridden: <span className="text-amber-400 font-mono">{stats.overridden}</span></span>
-                    <span>|</span>
-                    <span>Selected: <span className="text-blue-400 font-mono">{selectedTaskIds.size}</span></span>
-                    <span>|</span>
-                    <span>Showing: <span className="text-zinc-300 font-mono">{filteredAndSortedEntries.length}</span></span>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 bg-secondary/20 px-4 py-2 rounded-lg border border-border/40">
+                    <span className="flex items-center gap-1.5">Total: <span className="text-foreground font-mono">{stats.total}</span></span>
+                    <span className="opacity-20 text-foreground">|</span>
+                    <span className="flex items-center gap-1.5">Overridden: <span className="text-amber-600 dark:text-amber-400 font-mono">{stats.overridden}</span></span>
+                    <span className="opacity-20 text-foreground">|</span>
+                    <span className="flex items-center gap-1.5">Selected: <span className="text-indigo-600 dark:text-indigo-400 font-mono">{selectedTaskIds.size}</span></span>
+                    <span className="opacity-20 text-foreground">|</span>
+                    <span className="flex items-center gap-1.5">Showing: <span className="text-foreground font-mono">{filteredAndSortedEntries.length}</span></span>
                 </div>
             )}
 

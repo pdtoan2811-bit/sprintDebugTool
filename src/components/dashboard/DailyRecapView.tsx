@@ -33,48 +33,29 @@ interface DailyRecapViewProps {
     onTaskClick: (taskId: string) => void;
 }
 
-const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-    'Not Started': { bg: 'bg-zinc-700', border: 'border-zinc-600', text: 'text-zinc-300' },
-    'In Process': { bg: 'bg-blue-700', border: 'border-blue-500', text: 'text-blue-100' },
-    'Waiting to Integrate': { bg: 'bg-amber-700', border: 'border-amber-500', text: 'text-amber-100' },
-    'Reviewing': { bg: 'bg-purple-700', border: 'border-purple-500', text: 'text-purple-100' },
-    'Ready for Test': { bg: 'bg-cyan-700', border: 'border-cyan-500', text: 'text-cyan-100' },
-    'Testing': { bg: 'bg-teal-700', border: 'border-teal-500', text: 'text-teal-100' },
-    'Reprocess': { bg: 'bg-red-700', border: 'border-red-500', text: 'text-red-100' },
-    'Bug Fixing': { bg: 'bg-orange-700', border: 'border-orange-500', text: 'text-orange-100' },
-    'Staging Passed': { bg: 'bg-emerald-700', border: 'border-emerald-500', text: 'text-emerald-100' },
-    'Completed': { bg: 'bg-green-700', border: 'border-green-500', text: 'text-green-100' },
-};
+import { StatusBadge } from '@/lib/status-utils';
 
-function getStatusColor(status: string) {
-    return STATUS_COLORS[status] ?? { bg: 'bg-zinc-600', border: 'border-zinc-500', text: 'text-zinc-200' };
-}
-
-function StatusBadge({ status }: { status: string | null }) {
+function MovementStatusBadge({ status }: { status: string | null }) {
     if (!status) {
         return (
-            <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-mono font-semibold bg-zinc-900 text-zinc-500 border-zinc-700">
+            <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-mono font-semibold bg-muted text-muted-foreground border-border">
                 N/A
             </span>
         );
     }
-    const colors = getStatusColor(status);
-    return (
-        <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-mono font-semibold ${colors.bg} ${colors.text} ${colors.border}`}>
-            {status}
-        </span>
-    );
+    return <StatusBadge status={status} />;
 }
+
 
 function MovementArrow({ type }: { type: 'forward' | 'backward' | 'same' | 'new' }) {
     switch (type) {
         case 'forward':
         case 'new':
-            return <ArrowRight className="w-3 h-3 text-emerald-400 mx-1 flex-shrink-0" />;
+            return <ArrowRight className="w-3 h-3 text-emerald-600 dark:text-emerald-400 mx-1 flex-shrink-0" />;
         case 'backward':
-            return <ArrowRight className="w-3 h-3 text-red-400 mx-1 flex-shrink-0" />;
+            return <ArrowRight className="w-3 h-3 text-red-600 dark:text-red-400 mx-1 flex-shrink-0" />;
         case 'same':
-            return <ArrowRight className="w-3 h-3 text-zinc-500 mx-1 flex-shrink-0" />;
+            return <ArrowRight className="w-3 h-3 text-muted-foreground mx-1 flex-shrink-0" />;
     }
 }
 
@@ -85,7 +66,7 @@ function StatusChainDisplay({ movement }: { movement: TaskMovement }) {
     if (statusChain.length === 0) {
         return (
             <div className="flex items-center flex-wrap gap-1">
-                <StatusBadge status={movement.endStatus} />
+                <MovementStatusBadge status={movement.endStatus} />
             </div>
         );
     }
@@ -93,8 +74,8 @@ function StatusChainDisplay({ movement }: { movement: TaskMovement }) {
     if (statusChain.length === 1 && isNewTask) {
         return (
             <div className="flex items-center flex-wrap gap-1">
-                <StatusBadge status={statusChain[0].status} />
-                <span className="text-[9px] text-zinc-500 ml-1">(created)</span>
+                <MovementStatusBadge status={statusChain[0].status} />
+                <span className="text-[9px] text-muted-foreground ml-1">(created)</span>
             </div>
         );
     }
@@ -103,7 +84,7 @@ function StatusChainDisplay({ movement }: { movement: TaskMovement }) {
         <div className="flex items-center flex-wrap gap-0.5">
             {!isNewTask && movement.startStatus && (
                 <>
-                    <StatusBadge status={movement.startStatus} />
+                    <MovementStatusBadge status={movement.startStatus} />
                     {statusChain.length > 0 && (
                         <MovementArrow type={isRegression ? 'backward' : 'forward'} />
                     )}
@@ -111,14 +92,14 @@ function StatusChainDisplay({ movement }: { movement: TaskMovement }) {
             )}
             {statusChain.map((transition, idx) => (
                 <React.Fragment key={`${transition.status}-${idx}`}>
-                    <StatusBadge status={transition.status} />
+                    <MovementStatusBadge status={transition.status} />
                     {idx < statusChain.length - 1 && (
                         <MovementArrow type={isRegression ? 'backward' : 'forward'} />
                     )}
                 </React.Fragment>
             ))}
             {isRegression && (
-                <Badge variant="destructive" className="ml-2 text-[9px] gap-1">
+                <Badge variant="destructive" className="ml-2 text-[9px] gap-1 bg-red-100 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800">
                     <AlertTriangle className="w-2.5 h-2.5" />
                     Regression
                 </Badge>
@@ -139,27 +120,27 @@ function TaskMovementCard({ movement, onTaskClick, showMovementType = true }: Ta
     return (
         <button
             onClick={() => onTaskClick(movement.taskId)}
-            className={`w-full text-left rounded-lg border px-3 py-2.5 transition-all group cursor-pointer ${
+            className={`w-full text-left rounded-md border px-3 py-2 transition-all group cursor-pointer shadow-sm ${
                 isRegression
-                    ? 'border-red-700/50 bg-red-950/20 hover:border-red-600/70 hover:bg-red-950/30'
-                    : 'border-zinc-800/50 bg-zinc-900/30 hover:border-zinc-700/70 hover:bg-zinc-800/50'
+                    ? 'border-red-200 bg-red-50/50 hover:border-red-300 dark:border-red-700/50 dark:bg-red-950/20 dark:hover:border-red-600/70 dark:hover:bg-red-950/30'
+                    : 'border-border bg-card hover:bg-muted dark:border-zinc-800/50 dark:bg-zinc-900/30 dark:hover:border-zinc-700/70 dark:hover:bg-zinc-800/50'
             }`}
         >
             <div className="flex items-center justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <span className="font-mono text-[10px] text-zinc-400 flex-shrink-0">
+                    <span className="font-mono text-[10px] text-muted-foreground flex-shrink-0">
                         {movement.taskId}
                     </span>
-                    <span className="text-xs text-zinc-200 truncate">
+                    <span className="text-xs font-semibold text-foreground truncate">
                         {movement.taskName}
                     </span>
                 </div>
-                <ChevronRight className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 transition-colors flex-shrink-0" />
+                <ChevronRight className="w-3 h-3 text-muted-foreground/40 group-hover:text-foreground transition-colors flex-shrink-0" />
             </div>
 
             {showMovementType && <StatusChainDisplay movement={movement} />}
 
-            <div className="flex items-center gap-3 mt-2 text-[10px] text-zinc-500">
+            <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
                 <span className="flex items-center gap-1">
                     <Activity className="w-2.5 h-2.5" />
                     {movement.eventCount} event{movement.eventCount !== 1 ? 's' : ''}
@@ -174,6 +155,7 @@ function TaskMovementCard({ movement, onTaskClick, showMovementType = true }: Ta
         </button>
     );
 }
+
 
 interface PersonCardProps {
     personData: PersonDailyMovement;
@@ -207,71 +189,71 @@ function PersonCard({ personData, onTaskClick, defaultExpanded = false }: Person
                 : 'stalled';
 
     const borderColor = {
-        regression: 'border-red-700/60',
-        progress: 'border-emerald-700/60',
-        activity: 'border-amber-700/60',
-        stalled: 'border-zinc-800',
+        regression: 'border-red-200 dark:border-red-700/60',
+        progress: 'border-emerald-200 dark:border-emerald-700/60',
+        activity: 'border-amber-200 dark:border-amber-700/60',
+        stalled: 'border-border',
     }[personStatus];
 
     const bgColor = {
-        regression: 'bg-red-950/10',
-        progress: 'bg-emerald-950/10',
-        activity: 'bg-amber-950/10',
-        stalled: 'bg-zinc-950/50',
+        regression: 'bg-red-50/30 dark:bg-red-950/10',
+        progress: 'bg-emerald-50/30 dark:bg-emerald-950/10',
+        activity: 'bg-amber-50/30 dark:bg-amber-950/10',
+        stalled: 'bg-card',
     }[personStatus];
 
     const dotColor = {
-        regression: 'bg-red-500 animate-pulse',
-        progress: 'bg-emerald-500',
-        activity: 'bg-amber-500',
-        stalled: 'bg-zinc-500',
+        regression: 'bg-red-500 animate-pulse ring-2 ring-red-100 dark:ring-red-900/50',
+        progress: 'bg-emerald-500 ring-2 ring-emerald-100 dark:ring-emerald-900/50',
+        activity: 'bg-amber-500 ring-2 ring-amber-100 dark:ring-amber-900/50',
+        stalled: 'bg-zinc-300 dark:bg-zinc-600',
     }[personStatus];
 
     return (
-        <div className={`rounded-xl border p-4 transition-all ${borderColor} ${bgColor}`}>
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-800/50">
+        <div className={`rounded-lg border p-3 transition-all shadow-sm ${borderColor} ${bgColor}`}>
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-border">
                 <div className="flex items-center gap-2">
                     <div className={`w-3 h-3 rounded-full ${dotColor}`} />
-                    <h3 className="font-semibold text-zinc-100">{personData.person}</h3>
+                    <h3 className="font-semibold text-foreground">{personData.person}</h3>
                 </div>
                 <div className="flex items-center gap-2 text-[10px] font-mono flex-wrap">
-                    <Badge className="bg-blue-950/50 text-blue-300 border-blue-800/50 gap-1">
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800/50 gap-1">
                         <Zap className="w-2.5 h-2.5" />
                         {personData.totalEventsOnDay} events
                     </Badge>
                     {personData.forwardCount > 0 && (
-                        <Badge className="bg-emerald-950/50 text-emerald-300 border-emerald-800/50 gap-1">
+                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/50 gap-1">
                             <TrendingUp className="w-2.5 h-2.5" />
                             {personData.forwardCount} forward
                         </Badge>
                     )}
                     {personData.backwardCount > 0 && (
-                        <Badge className="bg-red-950/50 text-red-300 border-red-800/50 gap-1">
+                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-300 dark:border-red-800/50 gap-1">
                             <TrendingDown className="w-2.5 h-2.5" />
                             {personData.backwardCount} backward
                         </Badge>
                     )}
                     {personData.sameWithEvents.length > 0 && (
-                        <Badge className="bg-amber-950/50 text-amber-300 border-amber-800/50 gap-1">
+                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800/50 gap-1">
                             <Activity className="w-2.5 h-2.5" />
                             {personData.sameWithEvents.length} activity
                         </Badge>
                     )}
                     {personData.noChange.length > 0 && (
-                        <Badge className="bg-zinc-800/50 text-zinc-400 border-zinc-700/50">
+                        <Badge variant="outline" className="bg-muted text-muted-foreground border-border">
                             {personData.noChange.length} unchanged
                         </Badge>
                     )}
                 </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
                 {/* Moved Forward Section */}
                 {hasForward && (
                     <div>
                         <button
                             onClick={() => toggleSection('forward')}
-                            className="flex items-center gap-2 mb-2 text-emerald-400 hover:text-emerald-300 transition-colors w-full"
+                            className="flex items-center gap-2 mb-2 text-emerald-700 dark:text-emerald-400 hover:opacity-80 transition-opacity w-full"
                         >
                             {expandedSections.forward ? (
                                 <ChevronDown className="w-3.5 h-3.5" />
@@ -279,12 +261,12 @@ function PersonCard({ personData, onTaskClick, defaultExpanded = false }: Person
                                 <ChevronRight className="w-3.5 h-3.5" />
                             )}
                             <TrendingUp className="w-3.5 h-3.5" />
-                            <span className="text-[11px] font-semibold uppercase">
+                            <span className="text-[11px] font-bold uppercase tracking-wider">
                                 Moved Forward ({personData.movedForward.length})
                             </span>
                         </button>
                         {expandedSections.forward && (
-                            <div className="space-y-1.5 ml-5">
+                            <div className="space-y-1 ml-4">
                                 {personData.movedForward.map(tm => (
                                     <TaskMovementCard
                                         key={tm.taskId}
@@ -302,7 +284,7 @@ function PersonCard({ personData, onTaskClick, defaultExpanded = false }: Person
                     <div>
                         <button
                             onClick={() => toggleSection('backward')}
-                            className="flex items-center gap-2 mb-2 text-red-400 hover:text-red-300 transition-colors w-full"
+                            className="flex items-center gap-2 mb-2 text-red-700 dark:text-red-400 hover:opacity-80 transition-opacity w-full"
                         >
                             {expandedSections.backward ? (
                                 <ChevronDown className="w-3.5 h-3.5" />
@@ -310,12 +292,12 @@ function PersonCard({ personData, onTaskClick, defaultExpanded = false }: Person
                                 <ChevronRight className="w-3.5 h-3.5" />
                             )}
                             <TrendingDown className="w-3.5 h-3.5" />
-                            <span className="text-[11px] font-semibold uppercase">
+                            <span className="text-[11px] font-bold uppercase tracking-wider">
                                 Moved Backward ({personData.movedBackward.length})
                             </span>
                         </button>
                         {expandedSections.backward && (
-                            <div className="space-y-1.5 ml-5">
+                            <div className="space-y-1 ml-4">
                                 {personData.movedBackward.map(tm => (
                                     <TaskMovementCard
                                         key={tm.taskId}
@@ -333,7 +315,7 @@ function PersonCard({ personData, onTaskClick, defaultExpanded = false }: Person
                     <div>
                         <button
                             onClick={() => toggleSection('same')}
-                            className="flex items-center gap-2 mb-2 text-amber-400 hover:text-amber-300 transition-colors w-full"
+                            className="flex items-center gap-2 mb-2 text-amber-700 dark:text-amber-400 hover:opacity-80 transition-opacity w-full"
                         >
                             {expandedSections.same ? (
                                 <ChevronDown className="w-3.5 h-3.5" />
@@ -341,12 +323,12 @@ function PersonCard({ personData, onTaskClick, defaultExpanded = false }: Person
                                 <ChevronRight className="w-3.5 h-3.5" />
                             )}
                             <Activity className="w-3.5 h-3.5" />
-                            <span className="text-[11px] font-semibold uppercase">
+                            <span className="text-[11px] font-bold uppercase tracking-wider">
                                 Activity, Same Status ({personData.sameWithEvents.length})
                             </span>
                         </button>
                         {expandedSections.same && (
-                            <div className="space-y-1.5 ml-5">
+                            <div className="space-y-1 ml-4">
                                 {personData.sameWithEvents.map(tm => (
                                     <TaskMovementCard
                                         key={tm.taskId}
@@ -365,7 +347,7 @@ function PersonCard({ personData, onTaskClick, defaultExpanded = false }: Person
                     <div>
                         <button
                             onClick={() => toggleSection('noChange')}
-                            className="flex items-center gap-2 mb-2 text-zinc-500 hover:text-zinc-400 transition-colors w-full"
+                            className="flex items-center gap-2 mb-2 text-muted-foreground hover:text-foreground transition-colors w-full"
                         >
                             {expandedSections.noChange ? (
                                 <ChevronDown className="w-3.5 h-3.5" />
@@ -373,30 +355,30 @@ function PersonCard({ personData, onTaskClick, defaultExpanded = false }: Person
                                 <ChevronRight className="w-3.5 h-3.5" />
                             )}
                             <Minus className="w-3.5 h-3.5" />
-                            <span className="text-[11px] font-semibold uppercase">
+                            <span className="text-[11px] font-bold uppercase tracking-wider">
                                 No Change ({personData.noChange.length})
                             </span>
                         </button>
                         {expandedSections.noChange && (
-                            <div className="space-y-1.5 ml-5">
+                            <div className="space-y-1 ml-4">
                                 {personData.noChange.map(tm => (
                                     <div
                                         key={tm.taskId}
                                         onClick={() => onTaskClick(tm.taskId)}
-                                        className="w-full text-left rounded-lg border px-3 py-2 cursor-pointer border-zinc-800/30 bg-zinc-900/20 hover:border-zinc-700/50 hover:bg-zinc-800/30 transition-colors group"
+                                        className="w-full text-left rounded-lg border px-3 py-2 cursor-pointer border-border bg-muted/20 hover:bg-muted/50 transition-colors group"
                                     >
                                         <div className="flex items-center justify-between gap-2">
                                             <div className="flex items-center gap-2 min-w-0 flex-1">
-                                                <span className="font-mono text-[10px] text-zinc-500 flex-shrink-0">
+                                                <span className="font-mono text-[10px] text-muted-foreground flex-shrink-0">
                                                     {tm.taskId}
                                                 </span>
-                                                <span className="text-xs text-zinc-400 truncate">
+                                                <span className="text-xs text-muted-foreground font-medium group-hover:text-foreground transition-colors truncate">
                                                     {tm.taskName}
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <StatusBadge status={tm.endStatus} />
-                                                <ChevronRight className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 transition-colors flex-shrink-0" />
+                                                <MovementStatusBadge status={tm.endStatus} />
+                                                <ChevronRight className="w-3 h-3 text-muted-foreground/30 group-hover:text-foreground transition-colors flex-shrink-0" />
                                             </div>
                                         </div>
                                     </div>
@@ -409,6 +391,7 @@ function PersonCard({ personData, onTaskClick, defaultExpanded = false }: Person
         </div>
     );
 }
+
 
 interface SquadTodoRow {
     movement: TaskMovement;
@@ -428,9 +411,9 @@ function SquadSharedTasksTable({ rows, onTaskClick }: SquadSharedTasksTableProps
 
     if (sortedRows.length === 0) {
         return (
-            <div className="text-center py-12 text-zinc-500">
-                <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No shared squad tasks for this day.</p>
+            <div className="text-center py-12 text-muted-foreground">
+                <Users className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                <p className="font-medium text-foreground">No shared squad tasks for this day.</p>
                 <p className="text-sm mt-1">
                     We only list tasks that all selected people touched today.
                 </p>
@@ -439,43 +422,43 @@ function SquadSharedTasksTable({ rows, onTaskClick }: SquadSharedTasksTableProps
     }
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-2">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-sm font-semibold text-zinc-100 mb-0.5">
+                    <h2 className="text-sm font-semibold text-foreground mb-0.5">
                         Today&apos;s shared squad tasks
                     </h2>
-                    <p className="text-[11px] text-zinc-500">
+                    <p className="text-[11px] text-muted-foreground">
                         Each row is a task that all selected people worked on today.
                     </p>
                 </div>
-                <Badge className="bg-indigo-950/40 border-indigo-700/60 text-indigo-200 text-[10px] px-2 py-1">
+                <Badge variant="outline" className="bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-950/40 dark:border-indigo-700/60 dark:text-indigo-200 text-[10px] px-2 py-1">
                     {sortedRows.length} shared task{sortedRows.length !== 1 ? 's' : ''}
                 </Badge>
             </div>
 
-            <div className="overflow-x-auto border border-zinc-800/60 rounded-xl bg-zinc-950/40">
+            <div className="overflow-x-auto border border-border rounded-lg bg-card shadow-sm">
                 <table className="w-full min-w-[720px] text-xs">
-                    <thead className="bg-zinc-900/60 border-b border-zinc-800/60">
+                    <thead className="bg-muted/50 border-b border-border">
                         <tr>
-                            <th className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                            <th className="px-3 py-2 text-left text-[11px] font-bold tracking-tight text-muted-foreground">
                                 Task
                             </th>
-                            <th className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                            <th className="px-3 py-2 text-left text-[11px] font-bold tracking-tight text-muted-foreground">
                                 People on this task
                             </th>
-                            <th className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                            <th className="px-3 py-2 text-left text-[11px] font-bold tracking-tight text-muted-foreground">
                                 Movement today
                             </th>
-                            <th className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-zinc-500 w-[90px]">
+                            <th className="px-3 py-2 text-left text-[11px] font-bold tracking-tight text-muted-foreground w-[90px]">
                                 Events
                             </th>
-                            <th className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-zinc-500 w-[36px]">
+                            <th className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-muted-foreground w-[36px]">
                                 {/* chevron */}
                             </th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-900/70">
+                    <tbody className="divide-y divide-border">
                         {sortedRows.map(row => {
                             const tm = row.movement;
                             const people = row.people;
@@ -495,25 +478,25 @@ function SquadSharedTasksTable({ rows, onTaskClick }: SquadSharedTasksTableProps
                                             : 'New task';
 
                             const movementColor = isForward
-                                ? 'text-emerald-300'
+                                ? 'text-emerald-600 dark:text-emerald-400'
                                 : isBackward
-                                    ? 'text-red-300'
+                                    ? 'text-red-600 dark:text-red-400'
                                     : isSame
-                                        ? 'text-amber-300'
-                                        : 'text-zinc-400';
+                                        ? 'text-amber-600 dark:text-amber-400'
+                                        : 'text-muted-foreground';
 
                             return (
                                 <tr
                                     key={tm.taskId}
                                     onClick={() => onTaskClick(tm.taskId)}
-                                    className="hover:bg-zinc-900/80 cursor-pointer transition-colors"
+                                    className="hover:bg-muted/50 cursor-pointer transition-colors"
                                 >
                                     <td className="px-3 py-2 align-top">
                                         <div className="flex flex-col gap-0.5">
-                                            <span className="font-mono text-[11px] text-zinc-400">
+                                            <span className="font-mono text-[11px] text-muted-foreground">
                                                 {tm.taskId}
                                             </span>
-                                            <span className="text-xs text-zinc-100 line-clamp-2">
+                                            <span className="text-xs text-foreground font-medium line-clamp-2">
                                                 {tm.taskName}
                                             </span>
                                         </div>
@@ -523,9 +506,9 @@ function SquadSharedTasksTable({ rows, onTaskClick }: SquadSharedTasksTableProps
                                             {people.map(p => (
                                                 <span
                                                     key={p}
-                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-700 text-[11px] text-zinc-200"
+                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary border border-border text-[11px] text-foreground font-medium"
                                                 >
-                                                    <User className="w-3 h-3 text-zinc-500" />
+                                                    <User className="w-3 h-3 text-muted-foreground" />
                                                     {p}
                                                 </span>
                                             ))}
@@ -533,15 +516,15 @@ function SquadSharedTasksTable({ rows, onTaskClick }: SquadSharedTasksTableProps
                                     </td>
                                     <td className="px-3 py-2 align-top">
                                         <div className="flex flex-col gap-0.5">
-                                            <span className={`text-[11px] font-semibold ${movementColor}`}>
+                                            <span className={`text-[11px] font-bold ${movementColor}`}>
                                                 {movementLabel}
                                             </span>
                                             <StatusChainDisplay movement={tm} />
                                         </div>
                                     </td>
                                     <td className="px-3 py-2 align-top">
-                                        <div className="flex flex-col gap-0.5 text-[11px] text-zinc-400">
-                                            <span>{tm.eventCount} event{tm.eventCount !== 1 ? 's' : ''}</span>
+                                        <div className="flex flex-col gap-0.5 text-[11px] text-muted-foreground">
+                                            <span className="font-medium text-foreground/80">{tm.eventCount} event{tm.eventCount !== 1 ? 's' : ''}</span>
                                             {tm.lastEventTime && (
                                                 <span className="flex items-center gap-1">
                                                     <Clock className="w-3 h-3" />
@@ -552,7 +535,7 @@ function SquadSharedTasksTable({ rows, onTaskClick }: SquadSharedTasksTableProps
                                     </td>
                                     <td className="px-3 py-2 align-top">
                                         <div className="flex justify-center pt-2">
-                                            <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
+                                            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
                                         </div>
                                     </td>
                                 </tr>
@@ -564,6 +547,7 @@ function SquadSharedTasksTable({ rows, onTaskClick }: SquadSharedTasksTableProps
         </div>
     );
 }
+
 
 export function DailyRecapView({ rawLogs, sprintStartDate, onTaskClick }: DailyRecapViewProps) {
     const [selectedDate, setSelectedDate] = useState<Date>(() => subDays(new Date(), 1));
@@ -731,42 +715,44 @@ export function DailyRecapView({ rawLogs, sprintStartDate, onTaskClick }: DailyR
     return (
         <div className="space-y-4">
             {/* Control Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-zinc-800/50">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-border">
                 {/* Day Selector */}
-                <div className="flex items-center gap-2">
-                    <div className="flex rounded-lg border border-zinc-700 bg-zinc-900 p-0.5">
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center rounded-md border border-border bg-secondary p-0.5 shadow-sm">
                         <button
                             onClick={() => navigateDate('prev')}
                             disabled={!canGoBack}
-                            className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="p-1.5 rounded-md hover:bg-background text-muted-foreground hover:text-foreground transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                            title="Previous day"
                         >
                             <ChevronLeft className="w-4 h-4" />
                         </button>
-                        <div className="flex items-center gap-2 px-3 py-1">
-                            <Calendar className="w-4 h-4 text-blue-400" />
-                            <span className="text-sm font-medium text-zinc-200 min-w-[140px] text-center">
+                        <div className="flex items-center gap-1.5 px-3 py-0.5 group select-none">
+                            <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform" />
+                            <span className="text-sm font-bold text-foreground min-w-[140px] text-center tracking-tight">
                                 {getDateLabel()}
                             </span>
                         </div>
                         <button
                             onClick={() => navigateDate('next')}
                             disabled={!canGoForward}
-                            className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="p-1.5 rounded-md hover:bg-background text-muted-foreground hover:text-foreground transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                            title="Next day"
                         >
                             <ChevronRight className="w-4 h-4" />
                         </button>
                     </div>
 
                     {/* Quick Date Options */}
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                         {quickDateOptions.map(opt => (
                             <button
                                 key={opt.label}
                                 onClick={() => setSelectedDate(opt.date)}
-                                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
+                                className={`px-3 py-1.5 text-xs rounded-md transition-all font-semibold ${
                                     format(selectedDate, 'yyyy-MM-dd') === format(opt.date, 'yyyy-MM-dd')
-                                        ? 'bg-blue-600 text-white'
-                                        : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                                        ? 'bg-blue-600 text-white shadow-sm shadow-blue-200 dark:shadow-blue-900/40'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent hover:border-border'
                                 }`}
                             >
                                 {opt.label}
@@ -775,27 +761,27 @@ export function DailyRecapView({ rawLogs, sprintStartDate, onTaskClick }: DailyR
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-1 items-end">
+                <div className="flex flex-col gap-2 items-start md:items-end">
                     {/* Summary Stats */}
-                    <div className="flex items-center gap-3 text-[10px]">
-                        <div className="flex items-center gap-1 text-emerald-400">
+                    <div className="flex items-center gap-3 text-[10px] font-bold tracking-tight">
+                        <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                             <TrendingUp className="w-3 h-3" />
                             <span className="font-mono">{filteredMovementData.totalForward} forward</span>
                         </div>
-                        <div className="flex items-center gap-1 text-red-400">
+                        <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
                             <TrendingDown className="w-3 h-3" />
                             <span className="font-mono">{filteredMovementData.totalBackward} backward</span>
                         </div>
-                        <div className="flex items-center gap-1 text-amber-400">
+                        <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
                             <Activity className="w-3 h-3" />
                             <span className="font-mono">{filteredMovementData.totalSameWithEvents} same</span>
                         </div>
-                        <div className="flex items-center gap-1 text-zinc-500">
+                        <div className="flex items-center gap-1 text-muted-foreground">
                             <Minus className="w-3 h-3" />
                             <span className="font-mono">{filteredMovementData.totalNoChange} unchanged</span>
                         </div>
                         {filteredMovementData.topMover && (
-                            <div className="flex items-center gap-1 text-blue-400 border-l border-zinc-700 pl-3 ml-1">
+                            <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 border-l border-border pl-3 ml-1">
                                 <User className="w-3 h-3" />
                                 <span className="font-mono">Top: {filteredMovementData.topMover}</span>
                             </div>
@@ -803,23 +789,23 @@ export function DailyRecapView({ rawLogs, sprintStartDate, onTaskClick }: DailyR
                     </div>
 
                     {/* View Mode Toggle */}
-                    <div className="inline-flex items-center rounded-full bg-zinc-900 border border-zinc-700 p-0.5 text-[10px]">
+                    <div className="inline-flex items-center rounded-md bg-secondary border border-border p-0.5 shadow-sm">
                         <button
                             onClick={() => setViewMode('recap')}
-                            className={`px-3 py-1 rounded-full font-semibold uppercase tracking-wide transition-colors ${
+                            className={`px-3 py-1 rounded-md font-bold text-[11px] tracking-tight transition-all ${
                                 viewMode === 'recap'
-                                    ? 'bg-blue-600 text-white shadow-sm shadow-blue-900/40'
-                                    : 'text-zinc-400 hover:text-zinc-200'
+                                    ? 'bg-blue-600 text-white shadow-sm shadow-blue-200 dark:shadow-blue-900/40'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-background'
                             }`}
                         >
                             Daily Recap
                         </button>
                         <button
                             onClick={() => setViewMode('squad')}
-                            className={`px-3 py-1 rounded-full font-semibold uppercase tracking-wide transition-colors ${
+                            className={`px-3 py-1 rounded-md font-bold text-[11px] tracking-tight transition-all ${
                                 viewMode === 'squad'
-                                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-900/40'
-                                    : 'text-zinc-400 hover:text-zinc-200'
+                                    ? 'bg-[#1D3557] text-white shadow-sm shadow-indigo-200 dark:shadow-indigo-900/40'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-background'
                             }`}
                         >
                             Squad Shared To‑Do
@@ -830,11 +816,11 @@ export function DailyRecapView({ rawLogs, sprintStartDate, onTaskClick }: DailyR
 
             {/* Personnel Selector Row */}
             {movementData.personMovements.length > 0 && (
-                <div className="bg-zinc-950/50 p-3 rounded-xl border border-zinc-800 flex flex-col gap-2 flex-shrink-0">
-                    <div className="flex items-center gap-2 mb-1">
-                        <Users className="w-4 h-4 text-indigo-400" />
-                        <span className="font-semibold text-zinc-200 text-sm">
-                            Pick people to track as a squad
+                <div className="bg-secondary/30 p-4 rounded-xl border border-border flex flex-col gap-3 flex-shrink-0 shadow-sm">
+                    <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-[#1D3557] dark:text-indigo-400" />
+                        <span className="font-bold text-foreground text-sm tracking-tight">
+                            Filter by Squad Members
                         </span>
                     </div>
                     <div className="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
@@ -849,14 +835,14 @@ export function DailyRecapView({ rawLogs, sprintStartDate, onTaskClick }: DailyR
                                         else next.add(person);
                                         setSelectedPersonsFilter(next);
                                     }}
-                                    className={`flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${
+                                    className={`flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all shadow-sm ${
                                         isSelected 
-                                            ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(79,70,229,0.3)]'
-                                            : 'bg-zinc-900/80 border-zinc-700/80 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+                                            ? 'bg-[#1D3557] border-[#1D3557] text-white shadow-indigo-200 dark:shadow-indigo-900/40'
+                                            : 'bg-card border-border text-muted-foreground hover:bg-muted hover:text-foreground hover:border-muted-foreground/30'
                                     }`}
                                 >
-                                    <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white/80' : 'bg-zinc-600'}`} />
-                                    <span className="text-sm font-medium">{person}</span>
+                                    <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white/80' : 'bg-muted-foreground/30'}`} />
+                                    <span className="text-xs font-semibold">{person}</span>
                                 </button>
                             );
                         })}
@@ -864,73 +850,75 @@ export function DailyRecapView({ rawLogs, sprintStartDate, onTaskClick }: DailyR
                 </div>
             )}
 
-            {/* Summary Card */}
+            {/* Summary Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                <div className={`px-4 py-3 rounded-xl flex flex-col border ${
-                    filteredMovementData.totalTasksWithMovement > 0 ? 'bg-blue-950/20 border-blue-800/50' : 'bg-zinc-950 border-zinc-800'
+                <div className={`px-4 py-3 rounded-xl flex flex-col border transition-all shadow-sm ${
+                    filteredMovementData.totalTasksWithMovement > 0 ? 'bg-blue-50/50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800/50' : 'bg-card border-border'
                 }`}>
-                    <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1">
-                        <Zap className="w-3 h-3 text-blue-400" /> Total Activity
+                    <span className="text-muted-foreground text-[10px] font-bold flex items-center gap-1 tracking-tight">
+                        <Zap className="w-3 h-3 text-blue-600 dark:text-blue-400" /> Total Activity
                     </span>
-                    <span className={`text-2xl font-bold font-mono mt-1 ${filteredMovementData.totalTasksWithMovement > 0 ? 'text-blue-300' : 'text-zinc-100'}`}>
+                    <span className={`text-2xl font-bold font-mono mt-1 ${filteredMovementData.totalTasksWithMovement > 0 ? 'text-blue-700 dark:text-blue-300' : 'text-foreground'}`}>
                         {filteredMovementData.totalTasksWithMovement}
                     </span>
                 </div>
-                <div className={`px-4 py-3 rounded-xl flex flex-col border ${
-                    filteredMovementData.totalForward > 0 ? 'bg-emerald-950/20 border-emerald-800/50' : 'bg-zinc-950 border-zinc-800'
+                <div className={`px-4 py-3 rounded-xl flex flex-col border transition-all shadow-sm ${
+                    filteredMovementData.totalForward > 0 ? 'bg-emerald-50/50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/50' : 'bg-card border-border'
                 }`}>
-                    <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3 text-emerald-400" /> Forward
+                    <span className="text-muted-foreground text-[10px] font-bold flex items-center gap-1 tracking-tight">
+                        <TrendingUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Forward
                     </span>
-                    <span className={`text-2xl font-bold font-mono mt-1 ${filteredMovementData.totalForward > 0 ? 'text-emerald-300' : 'text-zinc-100'}`}>
+                    <span className={`text-2xl font-bold font-mono mt-1 ${filteredMovementData.totalForward > 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-foreground'}`}>
                         {filteredMovementData.totalForward}
                     </span>
                 </div>
-                <div className={`px-4 py-3 rounded-xl flex flex-col border ${
-                    filteredMovementData.totalBackward > 0 ? 'bg-red-950/20 border-red-800/50' : 'bg-zinc-950 border-zinc-800'
+                <div className={`px-4 py-3 rounded-xl flex flex-col border transition-all shadow-sm ${
+                    filteredMovementData.totalBackward > 0 ? 'bg-red-50/50 border-red-200 dark:bg-red-950/20 dark:border-red-800/50' : 'bg-card border-border'
                 }`}>
-                    <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1">
-                        <TrendingDown className="w-3 h-3 text-red-400" /> Backward
+                    <span className="text-muted-foreground text-[10px] font-bold flex items-center gap-1 tracking-tight">
+                        <TrendingDown className="w-3 h-3 text-red-600 dark:text-red-400" /> Backward
                     </span>
-                    <span className={`text-2xl font-bold font-mono mt-1 ${filteredMovementData.totalBackward > 0 ? 'text-red-300' : 'text-zinc-100'}`}>
+                    <span className={`text-2xl font-bold font-mono mt-1 ${filteredMovementData.totalBackward > 0 ? 'text-red-700 dark:text-red-300' : 'text-foreground'}`}>
                         {filteredMovementData.totalBackward}
                     </span>
                 </div>
-                <div className={`px-4 py-3 rounded-xl flex flex-col border ${
-                    filteredMovementData.totalSameWithEvents > 0 ? 'bg-amber-950/20 border-amber-800/50' : 'bg-zinc-950 border-zinc-800'
+                <div className={`px-4 py-3 rounded-xl flex flex-col border transition-all shadow-sm ${
+                    filteredMovementData.totalSameWithEvents > 0 ? 'bg-amber-50/50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800/50' : 'bg-card border-border'
                 }`}>
-                    <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1">
-                        <Activity className="w-3 h-3 text-amber-400" /> Same Status
+                    <span className="text-muted-foreground text-[10px] font-bold flex items-center gap-1 tracking-tight">
+                        <Activity className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Same Status
                     </span>
-                    <span className={`text-2xl font-bold font-mono mt-1 ${filteredMovementData.totalSameWithEvents > 0 ? 'text-amber-300' : 'text-zinc-100'}`}>
+                    <span className={`text-2xl font-bold font-mono mt-1 ${filteredMovementData.totalSameWithEvents > 0 ? 'text-amber-700 dark:text-amber-300' : 'text-foreground'}`}>
                         {filteredMovementData.totalSameWithEvents}
                     </span>
                 </div>
-                <div className={`px-4 py-3 rounded-xl flex flex-col border bg-zinc-950 border-zinc-800`}>
-                    <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1">
+                <div className="px-4 py-3 rounded-xl flex flex-col border bg-card border-border shadow-sm">
+                    <span className="text-muted-foreground text-[10px] font-bold flex items-center gap-1 tracking-tight">
                         <Minus className="w-3 h-3" /> No Change
                     </span>
-                    <span className="text-2xl font-bold font-mono mt-1 text-zinc-100">
+                    <span className="text-2xl font-bold font-mono mt-1 text-foreground">
                         {filteredMovementData.totalNoChange}
                     </span>
                 </div>
             </div>
 
+
+            {/* Person / Squad Cards */}
             {/* Person / Squad Cards */}
             {viewMode === 'recap' ? (
                 filteredMovementData.personMovements.length === 0 ? (
-                    <div className="text-center py-12 text-zinc-500">
-                        <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No task data found for {getDateLabel()}</p>
-                        <p className="text-sm mt-1">Try selecting a different date or different squad members</p>
+                    <div className="text-center py-16 bg-muted/20 rounded-2xl border border-dashed border-border">
+                        <Calendar className="w-12 h-12 mx-auto mb-4 opacity-10" />
+                        <p className="text-lg font-bold text-foreground/50">No task data found</p>
+                        <p className="text-sm text-muted-foreground mt-1 font-medium">Try selecting a different date or different squad members</p>
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-8">
                         {/* Optional Shared Squad Progress */}
                         {filteredMovementData.sharedSquadData && (
                             <div className="w-full">
-                                <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider flex items-center gap-2">
-                                    <Users className="w-4 h-4 text-indigo-400" />
+                                <h2 className="text-[11px] font-bold text-[#1D3557] dark:text-indigo-400 mb-4 tracking-tight flex items-center gap-2">
+                                    <Users className="w-4 h-4" />
                                     Shared Effort ({filteredMovementData.sharedSquadData.totalTasks} Tasks)
                                 </h2>
                                 <PersonCard
@@ -943,8 +931,8 @@ export function DailyRecapView({ rawLogs, sprintStartDate, onTaskClick }: DailyR
 
                         <div className="w-full">
                             {filteredMovementData.sharedSquadData && (
-                                <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider flex items-center gap-2">
-                                    <User className="w-4 h-4 text-zinc-500" />
+                                <h2 className="text-[11px] font-bold text-muted-foreground/80 mb-4 tracking-tight flex items-center gap-2">
+                                    <User className="w-4 h-4" />
                                     Individual Contributions
                                 </h2>
                             )}
@@ -984,12 +972,12 @@ export function DailyRecapView({ rawLogs, sprintStartDate, onTaskClick }: DailyR
 
                         if (sharedTodoTaskIds.length === 0) {
                             return (
-                                <div className="text-center py-12 text-zinc-500">
-                                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                    <p className="font-semibold text-zinc-300">
-                                        No shared to-do items for this squad today
+                                <div className="text-center py-20 bg-muted/20 rounded-2xl border border-dashed border-border">
+                                    <Users className="w-12 h-12 mx-auto mb-4 opacity-10" />
+                                    <p className="text-lg font-bold text-foreground/50">
+                                        No shared items today
                                     </p>
-                                    <p className="text-sm mt-1 text-zinc-500">
+                                    <p className="text-sm mt-1 text-muted-foreground font-medium max-w-md mx-auto">
                                         Pick at least two people above. We&apos;ll list tasks that appear on all of their to-do lists for {getDateLabel()}.
                                     </p>
                                 </div>
@@ -1052,25 +1040,26 @@ export function DailyRecapView({ rawLogs, sprintStartDate, onTaskClick }: DailyR
             )}
 
             {/* Legend */}
-            <div className="flex flex-wrap items-center gap-4 text-[9px] text-zinc-600 px-2 pt-4 border-t border-zinc-800/30">
-                <span className="font-semibold uppercase tracking-wider">Legend:</span>
-                <div className="flex items-center gap-1">
-                    <TrendingUp className="w-2.5 h-2.5 text-emerald-500" />
-                    <span>Moved Forward</span>
+            <div className="flex flex-wrap items-center gap-6 text-[10px] text-muted-foreground/60 px-4 py-6 border-t border-border/50">
+                <span className="font-bold text-foreground text-sm tracking-tight">Legend</span>
+                <div className="flex items-center gap-2">
+                    <TrendingUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                    <span className="font-medium">Moved Forward</span>
                 </div>
-                <div className="flex items-center gap-1">
-                    <TrendingDown className="w-2.5 h-2.5 text-red-500" />
-                    <span>Moved Backward (Regression)</span>
+                <div className="flex items-center gap-2">
+                    <TrendingDown className="w-3 h-3 text-red-600 dark:text-red-400" />
+                    <span className="font-medium">Regressed</span>
                 </div>
-                <div className="flex items-center gap-1">
-                    <Activity className="w-2.5 h-2.5 text-amber-500" />
-                    <span>Activity, Same Status</span>
+                <div className="flex items-center gap-2">
+                    <Activity className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                    <span className="font-medium">Activity, Same Status</span>
                 </div>
-                <div className="flex items-center gap-1">
-                    <Minus className="w-2.5 h-2.5 text-zinc-500" />
-                    <span>No Change</span>
+                <div className="flex items-center gap-2">
+                    <Minus className="w-3 h-3 text-muted-foreground" />
+                    <span className="font-medium">No Change</span>
                 </div>
             </div>
+
         </div>
     );
 }

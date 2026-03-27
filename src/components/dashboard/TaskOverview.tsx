@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { TaskAnalysis } from '@/lib/types';
-import { isBottleneckStatus, getStatusSeverity } from '@/lib/workflow-engine';
+import { TaskAnalysis, WORKFLOW_STATUSES } from '@/lib/types';
+import { getStatusSeverity } from '@/lib/workflow-engine';
 import { hasMetSprintGoal } from '@/lib/utils';
+import { priorityDotColor, StatusBadge } from '@/lib/status-utils';
 import { Badge } from '../ui/badge';
 import {
     AlertTriangle,
@@ -47,9 +48,12 @@ export function TaskOverview({ analyses, highRiskIds, onTaskClick }: TaskOvervie
                 case 'taskId':
                     cmp = a.taskId.localeCompare(b.taskId);
                     break;
-                case 'status':
-                    cmp = a.currentStatus.localeCompare(b.currentStatus);
+                case 'status': {
+                    const statusA = WORKFLOW_STATUSES.find(s => s.name === a.currentStatus)?.index ?? 99;
+                    const statusB = WORKFLOW_STATUSES.find(s => s.name === b.currentStatus)?.index ?? 99;
+                    cmp = statusA - statusB;
                     break;
+                }
                 case 'risk':
                     cmp = (riskOrder[a.riskLevel] ?? 0) - (riskOrder[b.riskLevel] ?? 0);
                     break;
@@ -88,7 +92,7 @@ export function TaskOverview({ analyses, highRiskIds, onTaskClick }: TaskOvervie
     const SortHeader = ({ label, sortKeyName, className = '' }: { label: string; sortKeyName: SortKey; className?: string }) => (
         <button
             onClick={() => toggleSort(sortKeyName)}
-            className={`flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold cursor-pointer hover:text-zinc-200 transition-colors ${sortKey === sortKeyName ? 'text-blue-400' : 'text-zinc-500'} ${className}`}
+            className={`flex items-center gap-1 text-[11px] font-bold tracking-tight cursor-pointer hover:text-foreground transition-colors ${sortKey === sortKeyName ? 'text-[#1D3557]' : 'text-muted-foreground'} ${className}`}
         >
             {label}
             <ArrowUpDown className="w-2.5 h-2.5" />
@@ -106,50 +110,50 @@ export function TaskOverview({ analyses, highRiskIds, onTaskClick }: TaskOvervie
 
     if (tasks.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-48 text-zinc-500 bg-zinc-950/30 rounded-xl border border-zinc-800/50">
-                <ListTodo className="w-10 h-10 mb-3 opacity-50" />
-                <p className="text-sm">No tasks to display</p>
-                <p className="text-xs mt-1 text-zinc-600">Tasks will appear here once data is loaded</p>
+            <div className="flex flex-col items-center justify-center h-48 text-muted-foreground bg-secondary/20 rounded-xl border border-border/50">
+                <ListTodo className="w-10 h-10 mb-3 opacity-20" />
+                <p className="text-sm font-bold">No tasks to display</p>
+                <p className="text-[10px] mt-1 opacity-60">Tasks will appear here once data is loaded</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             {/* Tasks Table */}
-            <div className="overflow-x-auto border border-zinc-800/50 rounded-xl">
+            <div className="overflow-x-auto border border-border/50 rounded-xl shadow-sm bg-card">
                 {/* Table Header */}
                 <table className="w-full min-w-[1170px] table-fixed">
                     <thead>
-                        <tr className="bg-zinc-900/50 border-b border-zinc-800/50">
-                            <th className="w-[40px] px-2 py-3">
+                        <tr className="bg-muted/50 border-b border-border/50">
+                            <th className="w-[40px] px-1.5 py-2.5">
                                 <span className="sr-only">Pin</span>
                             </th>
-                            <th className="w-[90px] px-3 py-3 text-left">
+                            <th className="w-[90px] px-2.5 py-2.5 text-left">
                                 <SortHeader label="Task ID" sortKeyName="taskId" />
                             </th>
-                            <th className="w-[280px] px-3 py-3 text-left">
-                                <span className="text-[10px] uppercase tracking-wider font-semibold text-zinc-500">Task Name</span>
+                            <th className="w-[280px] px-2.5 py-2.5 text-left">
+                                <span className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">Task Name</span>
                             </th>
-                            <th className="w-[140px] px-3 py-3 text-left">
+                            <th className="w-[140px] px-2.5 py-2.5 text-left">
                                 <SortHeader label="Person" sortKeyName="person" />
                             </th>
-                            <th className="w-[150px] px-3 py-3 text-left">
+                            <th className="w-[150px] px-2.5 py-2.5 text-left">
                                 <SortHeader label="Status" sortKeyName="status" />
                             </th>
-                            <th className="w-[130px] px-3 py-3 text-left">
+                            <th className="w-[130px] px-2.5 py-2.5 text-left">
                                 <SortHeader label="Sprint Goal" sortKeyName="goal" />
                             </th>
-                            <th className="w-[110px] px-3 py-3 text-left">
+                            <th className="w-[110px] px-2.5 py-2.5 text-left">
                                 <SortHeader label="Risk" sortKeyName="risk" />
                             </th>
-                            <th className="w-[70px] px-3 py-3 text-left">
+                            <th className="w-[70px] px-2.5 py-2.5 text-left">
                                 <SortHeader label="Stale" sortKeyName="stale" />
                             </th>
-                            <th className="w-[140px] px-3 py-3 text-left">
+                            <th className="w-[140px] px-2.5 py-2.5 text-left">
                                 <SortHeader label="Blocked By" sortKeyName="blocking" />
                             </th>
-                            <th className="w-[30px] px-2 py-3">
+                            <th className="w-[30px] px-1.5 py-2.5">
                                 <span className="sr-only">Action</span>
                             </th>
                         </tr>
@@ -157,13 +161,12 @@ export function TaskOverview({ analyses, highRiskIds, onTaskClick }: TaskOvervie
                 </table>
 
                 {/* Table Body */}
-                <div className="max-h-[500px] overflow-y-auto">
+                <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
                     <table className="w-full min-w-[1170px] table-fixed">
-                        <tbody className="divide-y divide-zinc-900/50">
+                        <tbody className="divide-y divide-border/40">
                             {tasks.map((task) => {
                                 const isHR = highRiskIds.has(task.taskId);
                                 const severity = getStatusSeverity(task.currentStatus);
-                                const isBottleneck = isBottleneckStatus(task.currentStatus);
                                 const metGoal = hasMetSprintGoal(task.currentStatus, task.sprintGoal);
 
                                 return (
@@ -172,115 +175,104 @@ export function TaskOverview({ analyses, highRiskIds, onTaskClick }: TaskOvervie
                                         onClick={() => onTaskClick(task.taskId)}
                                         className={`transition-all cursor-pointer group ${
                                             metGoal
-                                                ? 'bg-emerald-950/10 hover:bg-emerald-950/20 border-l-2 border-emerald-500'
+                                                ? 'bg-emerald-50/50 dark:bg-emerald-950/10 hover:bg-emerald-100/50 dark:hover:bg-emerald-950/20 border-l-2 border-emerald-500'
                                                 : isHR
-                                                    ? 'bg-red-950/20 hover:bg-red-950/30 border-l-2 border-red-500'
-                                                    : 'hover:bg-zinc-800/30'
+                                                    ? 'bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/30 border-l-2 border-red-500'
+                                                    : 'hover:bg-muted/50'
                                         }`}
                                     >
                                         {/* Pin */}
-                                        <td className="w-[40px] px-2 py-3 align-top">
+                                        <td className="w-[40px] px-1.5 py-2.5 align-top">
                                             <div className="flex justify-center pt-1">
                                                 {isHR && <Pin className="w-3.5 h-3.5 text-red-500 fill-red-500" />}
                                             </div>
                                         </td>
 
                                         {/* Task ID */}
-                                        <td className="w-[90px] px-3 py-3 align-top">
-                                            <span className="font-mono text-[11px] text-zinc-400 break-all">{task.taskId}</span>
+                                        <td className="w-[90px] px-2.5 py-2.5 align-top">
+                                            <span className="font-mono text-[11px] text-muted-foreground font-bold break-all">{task.taskId}</span>
                                         </td>
 
                                         {/* Task Name */}
-                                        <td className="w-[280px] px-3 py-3 align-top">
-                                            <span className="text-xs text-zinc-200 break-words leading-relaxed group-hover:text-white transition-colors">
+                                        <td className="w-[280px] px-2.5 py-2.5 align-top">
+                                            <span className="text-xs text-foreground font-semibold break-words leading-relaxed group-hover:text-primary transition-colors">
                                                 {task.taskName}
                                             </span>
                                         </td>
 
                                         {/* Person */}
-                                        <td className="w-[140px] px-3 py-3 align-top">
-                                            <span className="text-xs text-zinc-300 break-words font-mono">{task.currentPerson || '—'}</span>
+                                        <td className="w-[140px] px-2.5 py-2.5 align-top">
+                                            <span className="text-xs text-muted-foreground break-words font-bold font-mono uppercase tracking-tight opacity-80">{task.currentPerson || '—'}</span>
                                         </td>
 
                                         {/* Status */}
-                                        <td className="w-[150px] px-3 py-3 align-top">
-                                            <span
-                                                className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-mono font-semibold ${
-                                                    severity === 'critical'
-                                                        ? 'bg-red-950 text-red-300 border-red-800 animate-pulse'
-                                                        : severity === 'high'
-                                                            ? 'bg-amber-950 text-amber-300 border-amber-800 animate-pulse'
-                                                            : 'bg-zinc-800 text-zinc-300 border-zinc-700'
-                                                }`}
-                                            >
-                                                {isBottleneck && <Zap className="w-2.5 h-2.5 mr-1" />}
-                                                {task.currentStatus}
-                                            </span>
+                                        <td className="w-[150px] px-2.5 py-2.5 align-top">
+                                            <StatusBadge status={task.currentStatus} />
                                         </td>
 
                                         {/* Sprint Goal */}
-                                        <td className="w-[130px] px-3 py-3 align-top">
+                                        <td className="w-[130px] px-2.5 py-2.5 align-top">
                                             {task.sprintGoal ? (
                                                 <div className="flex items-center gap-1.5">
                                                     {metGoal ? (
-                                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-500 flex-shrink-0" />
                                                     ) : (
-                                                        <Target className="w-3 h-3 text-zinc-500 flex-shrink-0" />
+                                                        <Target className="w-3 h-3 text-muted-foreground/50 flex-shrink-0" />
                                                     )}
-                                                    <span className={`text-[10px] font-mono break-words ${metGoal ? 'text-emerald-400' : 'text-zinc-500'}`}>
+                                                    <span className={`text-[10px] font-bold font-mono break-words ${metGoal ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
                                                         {task.sprintGoal}
                                                     </span>
                                                 </div>
                                             ) : (
-                                                <span className="text-[10px] text-zinc-600 font-mono">—</span>
+                                                <span className="text-[10px] text-muted-foreground/30 font-bold font-mono">—</span>
                                             )}
                                         </td>
 
                                         {/* Risk */}
-                                        <td className="w-[110px] px-3 py-3 align-top">
+                                        <td className="w-[110px] px-2.5 py-2.5 align-top">
                                             {task.riskLevel === 'critical' ? (
-                                                <Badge variant="destructive" className="gap-1 text-[9px] px-1.5">
+                                                <Badge variant="destructive" className="gap-1 text-[9px] px-1.5 font-bold uppercase tracking-tight">
                                                     <RefreshCw className="w-2.5 h-2.5" />
                                                     DOOM ×{task.doomLoopCount || task.reprocessCount}
                                                 </Badge>
                                             ) : task.riskLevel === 'elevated' ? (
-                                                <Badge className="gap-1 text-[9px] px-1.5 bg-amber-900/80 text-amber-200 border-amber-700">
+                                                <Badge className="gap-1 text-[9px] px-1.5 bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-800 font-bold uppercase tracking-tight">
                                                     <AlertTriangle className="w-2.5 h-2.5" />
                                                     ELEVATED
                                                 </Badge>
                                             ) : (
-                                                <span className="text-[10px] text-zinc-600 font-mono">—</span>
+                                                <span className="text-[10px] text-muted-foreground/30 font-bold font-mono">—</span>
                                             )}
                                         </td>
 
                                         {/* Stale */}
-                                        <td className="w-[70px] px-3 py-3 align-top">
+                                        <td className="w-[70px] px-2.5 py-2.5 align-top">
                                             {task.isStale ? (
-                                                <span className="flex items-center gap-1 text-[10px] text-amber-400 font-mono">
+                                                <span className="flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 font-bold font-mono uppercase tracking-tight">
                                                     <Clock className="w-2.5 h-2.5" />
                                                     {Math.floor(task.staleDurationMs / 3600000)}h
                                                 </span>
                                             ) : (
-                                                <span className="text-[10px] text-zinc-600 font-mono">—</span>
+                                                <span className="text-[10px] text-muted-foreground/30 font-bold font-mono">—</span>
                                             )}
                                         </td>
 
                                         {/* Blocked By */}
-                                        <td className="w-[140px] px-3 py-3 align-top">
+                                        <td className="w-[140px] px-2.5 py-2.5 align-top">
                                             {task.blockedBy ? (
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-950/50 border border-orange-800 text-[10px] text-orange-300">
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-[10px] text-red-700 font-bold dark:bg-red-950/50 dark:border-red-900/50 dark:text-red-300 uppercase tracking-tight">
                                                     <User className="w-2.5 h-2.5" />
                                                     {task.blockedBy}
                                                 </span>
                                             ) : (
-                                                <span className="text-[10px] text-zinc-600 font-mono">—</span>
+                                                <span className="text-[10px] text-muted-foreground/30 font-bold font-mono">—</span>
                                             )}
                                         </td>
 
                                         {/* Chevron indicator */}
-                                        <td className="w-[30px] px-2 py-3 align-top">
+                                        <td className="w-[30px] px-1.5 py-2.5 align-top">
                                             <div className="flex justify-center pt-1">
-                                                <ChevronRight className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+                                                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-primary transition-colors" />
                                             </div>
                                         </td>
                                     </tr>
@@ -292,16 +284,16 @@ export function TaskOverview({ analyses, highRiskIds, onTaskClick }: TaskOvervie
             </div>
 
             {/* Summary Stats */}
-            <div className="flex flex-wrap gap-3 text-xs text-zinc-500">
-                <span>Total: <span className="text-zinc-300 font-mono">{stats.total}</span> tasks</span>
-                <span>|</span>
-                <span>High Risk: <span className="text-red-400 font-mono">{stats.highRisk}</span></span>
-                <span>|</span>
-                <span>Stale: <span className="text-amber-400 font-mono">{stats.stale}</span></span>
-                <span>|</span>
-                <span>Blocked: <span className="text-orange-400 font-mono">{stats.blocked}</span></span>
-                <span>|</span>
-                <span>Met Goal: <span className="text-emerald-400 font-mono">{stats.metGoal}</span></span>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] uppercase font-black tracking-widest text-muted-foreground bg-secondary/30 px-4 py-2 rounded-lg border border-border/50 shadow-sm">
+                <span className="flex items-center gap-1.5">Total: <span className="text-foreground font-mono">{stats.total}</span></span>
+                <span className="opacity-20 text-foreground">|</span>
+                <span className="flex items-center gap-1.5">High Risk: <span className="text-red-600 dark:text-red-400 font-mono">{stats.highRisk}</span></span>
+                <span className="opacity-20 text-foreground">|</span>
+                <span className="flex items-center gap-1.5">Stale: <span className="text-amber-600 dark:text-amber-400 font-mono">{stats.stale}</span></span>
+                <span className="opacity-20 text-foreground">|</span>
+                <span className="flex items-center gap-1.5">Blocked: <span className="text-red-600 dark:text-red-400 font-mono">{stats.blocked}</span></span>
+                <span className="opacity-20 text-foreground">|</span>
+                <span className="flex items-center gap-1.5">Met Goal: <span className="text-emerald-600 dark:text-emerald-400 font-mono">{stats.metGoal}</span></span>
             </div>
         </div>
     );

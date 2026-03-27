@@ -6,20 +6,20 @@ import { format } from 'date-fns';
 
 // ── Status colour map ──────────────────────────────────────────────
 const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-    'Not Started': { bg: 'bg-zinc-700', border: 'border-zinc-600', text: 'text-zinc-300' },
-    'In Process': { bg: 'bg-blue-700', border: 'border-blue-500', text: 'text-blue-100' },
-    'Waiting to Integrate': { bg: 'bg-amber-700', border: 'border-amber-500', text: 'text-amber-100' },
-    'Reviewing': { bg: 'bg-purple-700', border: 'border-purple-500', text: 'text-purple-100' },
-    'Ready for Test': { bg: 'bg-cyan-700', border: 'border-cyan-500', text: 'text-cyan-100' },
-    'Testing': { bg: 'bg-teal-700', border: 'border-teal-500', text: 'text-teal-100' },
-    'Reprocess': { bg: 'bg-red-700', border: 'border-red-500', text: 'text-red-100' },
-    'Bug Fixing': { bg: 'bg-orange-700', border: 'border-orange-500', text: 'text-orange-100' },
-    'Staging Passed': { bg: 'bg-emerald-700', border: 'border-emerald-500', text: 'text-emerald-100' },
-    'Completed': { bg: 'bg-green-700', border: 'border-green-500', text: 'text-green-100' },
+    'Not Started': { bg: 'bg-zinc-100', border: 'border-zinc-300', text: 'text-zinc-600' },
+    'In Process': { bg: 'bg-blue-100', border: 'border-blue-300', text: 'text-blue-700' },
+    'Waiting to Integrate': { bg: 'bg-amber-100', border: 'border-amber-300', text: 'text-amber-700' },
+    'Reviewing': { bg: 'bg-purple-100', border: 'border-purple-300', text: 'text-purple-700' },
+    'Ready for Test': { bg: 'bg-cyan-100', border: 'border-cyan-300', text: 'text-cyan-700' },
+    'Testing': { bg: 'bg-teal-100', border: 'border-teal-300', text: 'text-teal-700' },
+    'Reprocess': { bg: 'bg-rose-100', border: 'border-rose-300', text: 'text-rose-700' },
+    'Bug Fixing': { bg: 'bg-orange-100', border: 'border-orange-300', text: 'text-orange-700' },
+    'Staging Passed': { bg: 'bg-emerald-100', border: 'border-emerald-300', text: 'text-emerald-700' },
+    'Completed': { bg: 'bg-green-100', border: 'border-green-300', text: 'text-green-700' },
 };
 
 function getStatusColor(status: string) {
-    return STATUS_COLORS[status] ?? { bg: 'bg-zinc-600', border: 'border-zinc-500', text: 'text-zinc-200' };
+    return STATUS_COLORS[status] ?? { bg: 'bg-zinc-100', border: 'border-zinc-300', text: 'text-zinc-600' };
 }
 
 function formatDuration(ms: number): string {

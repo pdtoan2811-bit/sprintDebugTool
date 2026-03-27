@@ -19,6 +19,8 @@ import {
     Trash2,
     User,
     Zap,
+    MoveRight,
+    ChevronDown as ChevronDownIcon
 } from 'lucide-react';
 import { calculateWorkingDuration, formatWorkingTime, formatAbsoluteTime } from '@/lib/date-utils';
 import { useSprintConfig } from '@/lib/hooks/useSprintConfig';
@@ -28,63 +30,51 @@ import { useSprintConfig } from '@/lib/hooks/useSprintConfig';
 function getDurationColor(ms: number, isOvertime: boolean): string {
     const hours = ms / (1000 * 60 * 60);
     if (!isOvertime) {
-        if (hours >= 15) return 'text-red-400'; // >= 2 days
-        if (hours >= 7.5) return 'text-amber-400'; // >= 1 day
-        if (hours >= 4) return 'text-yellow-300';
+        if (hours >= 15) return 'text-red-600 dark:text-red-400'; // >= 2 days
+        if (hours >= 7.5) return 'text-amber-600 dark:text-amber-400'; // >= 1 day
+        if (hours >= 4) return 'text-yellow-600 dark:text-yellow-300';
     } else {
-        if (hours >= 12) return 'text-purple-400';
-        if (hours >= 4) return 'text-fuchsia-400';
+        if (hours >= 12) return 'text-indigo-600 dark:text-indigo-400';
+        if (hours >= 4) return 'text-fuchsia-600 dark:text-fuchsia-400';
     }
-    return 'text-zinc-400';
+    return 'text-muted-foreground';
 }
 
 // ── Color mapping for status dot ──────────────────────────────────
 
 function getStatusDotColor(status: string): string {
     const severity = getStatusSeverity(status);
-    if (severity === 'critical') return 'bg-red-500 shadow-red-500/40 shadow-sm';
-    if (severity === 'high') return 'bg-amber-500 shadow-amber-500/40 shadow-sm';
-    if (status === 'Completed' || status === 'Staging Passed') return 'bg-emerald-500 shadow-emerald-500/40 shadow-sm';
-    if (status === 'In Process' || status === 'Testing' || status === 'Bug Fixing') return 'bg-blue-500 shadow-blue-500/30 shadow-sm';
-    return 'bg-zinc-500';
+    if (severity === 'critical') return 'bg-red-500 shadow-red-500/20';
+    if (severity === 'high') return 'bg-amber-500 shadow-amber-500/20';
+    if (status === 'Completed' || status === 'Staging Passed') return 'bg-emerald-500 shadow-emerald-500/20';
+    if (status === 'In Process' || status === 'Testing' || status === 'Bug Fixing') return 'bg-indigo-500 shadow-indigo-500/20';
+    return 'bg-muted-foreground/40';
 }
 
 function getStatusLineColor(status: string): string {
     const severity = getStatusSeverity(status);
-    if (severity === 'critical') return 'border-red-800/60';
-    if (severity === 'high') return 'border-amber-800/60';
-    return 'border-zinc-800/60';
+    if (severity === 'critical') return 'border-red-500/30';
+    if (severity === 'high') return 'border-amber-500/30';
+    return 'border-border/40';
 }
 
-// ── Unified Event Types ───────────────────────────────────────────
-
-type TimelineEvent =
-    | { kind: 'status'; entry: StatusHistoryEntry; durationMs: number; workingMs: number; offHoursMs: number; isOvertime: boolean; visualMs: number; isLast: boolean; index: number }
-    | { kind: 'note'; note: MeetingNote };
-
-function parseLocalDateLocal(dateStr: string): Date | null {
-    if (!dateStr) return null;
-    const parts = dateStr.split('-');
-    if (parts.length !== 3) return null;
-    const [y, m, d] = parts;
-    return new Date(Number(y), Number(m) - 1, Number(d));
-}
+// ── Color mapping for status backgrounds (Timeline Bar) ─────────
 
 function getStatusBgColor(status: string, isOvertime: boolean): string {
-    if (isOvertime) return 'bg-purple-600';
+    if (isOvertime) return 'bg-indigo-600';
     const lower = status.toLowerCase();
 
     if (lower.includes('completed') || lower.includes('passed')) return 'bg-emerald-500';
     if (lower.includes('testing') || lower.includes('qa')) return 'bg-cyan-500';
     if (lower.includes('ready for test')) return 'bg-teal-500';
-    if (lower.includes('in process') || lower.includes('dev')) return 'bg-blue-500';
+    if (lower.includes('in process') || lower.includes('dev')) return 'bg-indigo-500';
     if (lower.includes('bug') || lower.includes('fail') || lower.includes('reprocess')) return 'bg-rose-500';
 
     // Fallback severity check
     if (lower.includes('block') || lower.includes('critical')) return 'bg-red-500';
     if (lower.includes('high')) return 'bg-amber-500';
 
-    return 'bg-zinc-600';
+    return 'bg-slate-500';
 }
 
 interface TaskTimelineProps {
@@ -274,34 +264,38 @@ export function TaskTimeline({
         }).filter(d => d.workingMs > 0 || d.offHoursMs > 0);
     }, [timelineSegments, sprintDays]);
 
+    const todayDateStr = format(new Date(), 'MMM d');
+
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             {/* ── Section Header ── */}
             <div className="flex items-center justify-between w-full">
                 <button
                     onClick={() => setExpanded(!expanded)}
-                    className="flex items-center gap-2 group"
+                    className="flex items-center gap-2.5 group active:scale-95 transition-transform"
                 >
-                    <Clock className="w-3.5 h-3.5 text-cyan-400" />
-                    <h3 className="text-sm font-semibold tracking-wide text-zinc-300 uppercase">
+                    <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/20">
+                        <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <h3 className="text-[10px] font-black tracking-widest text-foreground uppercase">
                         Timeline Overview
                     </h3>
-                    <span className="text-zinc-600 group-hover:text-zinc-400 transition-colors ml-1">
+                    <div className="text-muted-foreground/30 group-hover:text-foreground transition-colors">
                         {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </span>
+                    </div>
                 </button>
 
                 {expanded && (
-                    <div className="flex bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 mt-0.5">
+                    <div className="flex bg-secondary/50 border border-border/50 rounded-xl p-1 shadow-sm">
                         <button
                             onClick={(e) => { e.stopPropagation(); setViewMode('status'); }}
-                            className={`text-[9px] uppercase font-bold px-2 py-1 rounded transition-colors tracking-widest ${viewMode === 'status' ? 'bg-zinc-700 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                            className={`text-[9px] uppercase font-black px-3 py-1.5 rounded-lg transition-all tracking-widest ${viewMode === 'status' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100 dark:shadow-indigo-950/30' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                             Sequence
                         </button>
                         <button
                             onClick={(e) => { e.stopPropagation(); setViewMode('day'); }}
-                            className={`text-[9px] uppercase font-bold px-2 py-1 rounded transition-colors tracking-widest ${viewMode === 'day' ? 'bg-zinc-700 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                            className={`text-[9px] uppercase font-black px-3 py-1.5 rounded-lg transition-all tracking-widest ${viewMode === 'day' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100 dark:shadow-indigo-950/30' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                             Daily
                         </button>
@@ -310,13 +304,13 @@ export function TaskTimeline({
             </div>
 
             {expanded && (
-                <>
+                <div className="animate-in fade-in slide-in-from-top-2 duration-500">
                     {/* ── Duration Summary Bar ── */}
                     {totalVisualMs > 0 && (
-                        <div className="space-y-2 pb-2 border-b border-zinc-800/50">
+                        <div className="space-y-4 pb-4">
                             {/* Stacked bar or Daily grid */}
                             {viewMode === 'status' ? (
-                                <div className="flex h-3.5 rounded-full overflow-hidden bg-zinc-900 border border-zinc-950 outline outline-1 outline-black shadow-inner shadow-black/80">
+                                <div className="flex h-4 rounded-full overflow-hidden bg-secondary border border-border shadow-inner p-0.5">
                                     {timelineSegments.map((seg, i) => {
                                         const { id, status, visualMs, workingMs, isOvertime, dateStr } = seg;
                                         const pct = (visualMs / Math.max(1, totalVisualMs)) * 100;
@@ -347,32 +341,26 @@ export function TaskTimeline({
                                                 key={id}
                                                 onMouseEnter={() => setHoveredId(id)}
                                                 onMouseLeave={() => setHoveredId(null)}
-                                                className={`${bgColor} ${isDimmed ? 'opacity-25 grayscale-[0.5]' : 'opacity-100'} transition-all duration-300 relative group/bar cursor-pointer hover:brightness-125 hover:z-20`}
-                                                style={{ width: `${pct}%`, minWidth: pct > 1.5 ? undefined : '2px' }}
+                                                className={`${bgColor} ${isDimmed ? 'opacity-25 grayscale-[0.5]' : 'opacity-100'} transition-all duration-300 relative group/bar cursor-pointer hover:brightness-110 hover:z-20 rounded-sm mx-[0.5px]`}
+                                                style={{ width: `${pct}%`, minWidth: pct > 1.5 ? undefined : '3px' }}
                                                 title={`${status} (${dateStr}): ${isOvertime ? formatAbsoluteTime(visualMs) + ' Overtime' : formatWorkingTime(workingMs)}`}
                                             >
-                                                {isNewDate && i !== 0 && (
-                                                    <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-zinc-950 z-10 box-content px-[0.5px]">
-                                                        <div className="w-full h-full bg-white opacity-40"></div>
-                                                    </div>
-                                                )}
                                                 {internalNotches.map((notch, j) => (
                                                     <div
                                                         key={`notch-${j}`}
-                                                        className="absolute top-0 bottom-0 w-[2px] bg-black/40 hover:bg-white hover:w-[4px] hover:shadow-[0_0_6px_#fff] z-10 hover:z-20 transition-all cursor-crosshair"
+                                                        className="absolute top-0 bottom-0 w-[1px] bg-white/30 z-10"
                                                         style={{ left: `${notch.pctPos}%` }}
-                                                        title={`Day ${notch.dayCount} of ${status}`}
                                                     />
                                                 ))}
                                                 {isOvertime && (
-                                                    <div className="absolute inset-0 opacity-40 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,#000_2px,#000_4px)] mix-blend-overlay pointer-events-none" />
+                                                    <div className="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,white_2px,white_4px)] pointer-events-none" />
                                                 )}
                                             </div>
                                         );
                                     })}
                                 </div>
                             ) : (
-                                <div className="flex h-[52px] rounded border border-zinc-800 bg-zinc-900/40 relative isolate overflow-hidden group/grid shadow-inner">
+                                <div className="flex h-16 rounded-2xl border border-border bg-secondary/20 relative isolate overflow-hidden group/grid shadow-inner p-1 gap-1">
                                     {sprintDays.map((dayObj, dayIdx) => {
                                         const dayStartTs = dayObj.getTime();
                                         const windowStart = dayStartTs + 8.5 * 3600 * 1000;
@@ -389,22 +377,17 @@ export function TaskTimeline({
                                         return (
                                             <div
                                                 key={dayIdx}
-                                                className={`relative flex-1 group/daycol border-r border-zinc-800/60 last:border-r-0 transition-colors cursor-crosshair ${isHoveredDay ? 'bg-blue-900/20 z-10 block' : isToday ? 'bg-zinc-800/30' : 'hover:bg-zinc-800/40'}`}
+                                                className={`relative flex-1 group/daycol rounded-xl transition-all cursor-pointer ${isHoveredDay ? 'bg-indigo-600/10 ring-1 ring-indigo-500/20 z-10' : isToday ? 'bg-indigo-50 dark:bg-indigo-950/20' : 'hover:bg-muted/50'}`}
                                                 onMouseEnter={() => setHoveredId(formattedDay)}
                                                 onMouseLeave={() => setHoveredId(null)}
-                                                title={`${format(dayObj, 'EEEE, MMM d')}\n(8:30 - 17:30 fixed timeline)`}
+                                                title={`${format(dayObj, 'EEEE, MMM d')}\nWorking Window: 8:30 - 17:30`}
                                             >
-                                                {/* Header for purely visual grouping */}
-                                                <div className={`absolute inset-x-0 top-0 h-1.5 transition-colors ${isHoveredDay ? 'bg-blue-500 shadow-[0_0_8px_theme(colors.blue.500)]' : isToday ? 'bg-zinc-500/80' : 'bg-black/30'}`} />
-
-                                                {/* Subtle 2-hour grid lines behind the bars */}
-                                                <div className="absolute inset-x-0 bottom-4 top-[6px] flex justify-between pointer-events-none opacity-20 group-hover/grid:opacity-40 transition-opacity">
-                                                    {Array.from({ length: 4 }).map((_, i) => (
-                                                        <div key={i} className="w-px h-full bg-zinc-400" />
-                                                    ))}
+                                                {/* Dot Indicator for active days */}
+                                                <div className="absolute top-1.5 left-1/2 -translate-x-1/2">
+                                                    <div className={`w-1 h-1 rounded-full ${isHoveredDay ? 'bg-indigo-500 animate-pulse' : isToday ? 'bg-indigo-400' : 'bg-muted-foreground/10'}`} />
                                                 </div>
 
-                                                <div className={`absolute top-0 bottom-[18px] left-0 right-0 flex pointer-events-none transition-all duration-300 ${isDimmedDay ? 'opacity-20 grayscale' : 'opacity-100'}`}>
+                                                <div className={`absolute top-4 bottom-5 left-1.5 right-1.5 flex pointer-events-none transition-all duration-300 ${isDimmedDay ? 'opacity-20 grayscale' : 'opacity-100'}`}>
                                                     {timelineSegments.map(seg => {
                                                         const overlapStart = Math.max(seg.startMs, windowStart);
                                                         const overlapEnd = Math.min(seg.endMs, windowEnd);
@@ -417,8 +400,8 @@ export function TaskTimeline({
                                                             return (
                                                                 <div
                                                                     key={`span-${seg.id}-${dayIdx}`}
-                                                                    className={`absolute top-[10px] bottom-0 rounded-[2px] shadow-sm ${bgColor} ${isHoveredDay ? 'ring-1 ring-white/40 shadow-black shadow-md z-10 brightness-110' : ''}`}
-                                                                    style={{ left: `${leftPct}%`, width: `${widthPct}%`, minWidth: '1.5px' }}
+                                                                    className={`absolute inset-y-0.5 rounded-[2px] shadow-sm ${bgColor} ${isHoveredDay ? 'ring-1 ring-white/50 z-10' : ''}`}
+                                                                    style={{ left: `${leftPct}%`, width: `${widthPct}%`, minWidth: '2px' }}
                                                                 />
                                                             );
                                                         }
@@ -426,10 +409,10 @@ export function TaskTimeline({
                                                     })}
                                                 </div>
 
-                                                {/* Date Label Legend */}
-                                                <div className="absolute inset-x-0 bottom-0 h-[18px] bg-zinc-950/80 border-t border-zinc-800/80 flex items-center justify-center">
-                                                    <span className={`text-[9px] font-bold tracking-wider uppercase transition-colors ${isHoveredDay ? 'text-blue-400' : isToday ? 'text-zinc-300' : 'text-zinc-500'}`}>
-                                                        {format(dayObj, 'MMM d')}
+                                                {/* Date Label */}
+                                                <div className="absolute inset-x-0 bottom-0 py-1.5 flex items-center justify-center">
+                                                    <span className={`text-[8px] font-black tracking-tighter uppercase transition-colors ${isHoveredDay ? 'text-indigo-600 dark:text-indigo-400' : isToday ? 'text-indigo-500' : 'text-muted-foreground/50'}`}>
+                                                        {format(dayObj, 'd')}
                                                     </span>
                                                 </div>
                                             </div>
@@ -437,38 +420,39 @@ export function TaskTimeline({
                                     })}
                                 </div>
                             )}
-                            {/* Legend chips */}
-                            <div className="flex flex-wrap gap-1.5 pt-1.5">
+
+                            {/* Legend Chips Scrollable Container */}
+                            <div className="flex flex-wrap gap-2 pt-1 border-t border-border/40">
                                 {viewMode === 'status' ? (
                                     timelineSegments
-                                        .filter(({ visualMs }) => (visualMs / Math.max(1, totalVisualMs)) * 100 >= 1)
+                                        .filter(({ visualMs }) => (visualMs / Math.max(1, totalVisualMs)) * 100 >= 0.5)
                                         .map(({ id, status, workingMs, offHoursMs, visualMs, isOvertime, dateStr }) => {
                                             const isHovered = hoveredId === id;
                                             const isDimmed = hoveredId !== null && !isHovered;
 
                                             return (
-                                                <span
+                                                <button
                                                     key={id}
                                                     onMouseEnter={() => setHoveredId(id)}
                                                     onMouseLeave={() => setHoveredId(null)}
-                                                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md border text-[10px] uppercase tracking-wide cursor-pointer transition-all duration-300 ${isHovered
-                                                        ? 'bg-zinc-800 border-zinc-600 shadow-md scale-105 z-10 font-bold'
+                                                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-300 active:scale-95 ${isHovered
+                                                        ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-950/30 dark:border-indigo-800 shadow-sm scale-[1.02] z-10'
                                                         : isDimmed
-                                                            ? 'bg-zinc-950 border-zinc-900 opacity-40 grayscale-[0.5]'
-                                                            : 'bg-zinc-900 border-zinc-800 font-medium'
+                                                            ? 'bg-secondary/30 border-transparent opacity-30 grayscale-[0.8]'
+                                                            : 'bg-secondary border-border/50'
                                                         }`}
                                                 >
-                                                    <span className={`w-1.5 h-1.5 rounded-full ${isOvertime ? 'bg-purple-500' : getStatusDotColor(status)} shadow-sm`} />
-                                                    <span className={isDimmed ? 'text-zinc-600' : 'text-zinc-400'}>
-                                                        {status} <span className="text-zinc-600 ml-0.5 opacity-70">({dateStr.split(' ')[1]})</span>
-                                                    </span>
-                                                    <span className={`font-mono text-[11px] ${isDimmed ? 'text-zinc-600' : getDurationColor(visualMs, isOvertime)}`}>
+                                                    <div className={`w-2 h-2 rounded-full ${isOvertime ? 'bg-indigo-500' : getStatusDotColor(status)} shadow-sm shadow-black/5 dark:shadow-white/5`} />
+                                                    <div className="flex flex-col items-start leading-none">
+                                                        <span className={`text-[9px] font-black uppercase tracking-tight ${isDimmed ? 'text-muted-foreground' : 'text-foreground'}`}>
+                                                            {status}
+                                                        </span>
+                                                        <span className="text-[8px] font-bold text-muted-foreground/50">{dateStr}</span>
+                                                    </div>
+                                                    <div className={`font-mono text-[10px] font-black ml-1 ${isDimmed ? 'text-muted-foreground/30' : getDurationColor(visualMs, isOvertime)}`}>
                                                         {isOvertime ? formatAbsoluteTime(visualMs) : formatWorkingTime(workingMs)}
-                                                    </span>
-                                                    {isOvertime && (
-                                                        <span className={`text-[8px] font-bold ${isDimmed ? 'text-purple-900' : 'text-purple-400'} ml-0.5`}>OVERTIME</span>
-                                                    )}
-                                                </span>
+                                                    </div>
+                                                </button>
                                             );
                                         })
                                 ) : (
@@ -476,30 +460,27 @@ export function TaskTimeline({
                                         .map(({ dateStr, workingMs, offHoursMs, visualMs, statuses }) => {
                                             const isHovered = hoveredId === dateStr;
                                             const isDimmed = hoveredId !== null && !isHovered;
-
                                             const isOvertime = workingMs === 0 && offHoursMs > 0;
+                                            const isToday = dateStr === todayDateStr;
 
                                             return (
-                                                <span
+                                                <button
                                                     key={dateStr}
                                                     onMouseEnter={() => setHoveredId(dateStr)}
                                                     onMouseLeave={() => setHoveredId(null)}
-                                                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded border text-[11px] uppercase tracking-wide cursor-pointer transition-all duration-300 ${isHovered
-                                                        ? 'bg-zinc-800 border-zinc-600 shadow-md scale-105 z-10 font-bold'
+                                                    className={`inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl border transition-all duration-300 active:scale-95 ${isHovered || isToday
+                                                        ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-950/30 dark:border-indigo-800 shadow-sm'
                                                         : isDimmed
-                                                            ? 'bg-zinc-950 border-zinc-900 opacity-40 grayscale-[0.5]'
-                                                            : 'bg-zinc-900 border-zinc-800 font-medium'
+                                                            ? 'bg-secondary/30 border-transparent opacity-30 grayscale'
+                                                            : 'bg-secondary border-border/50'
                                                         }`}
                                                 >
-                                                    <Calendar className={`w-3 h-3 ${isHovered ? 'text-blue-400' : 'text-zinc-500'}`} />
-                                                    <span className={isDimmed ? 'text-zinc-500' : 'text-zinc-300'}>{dateStr}</span>
-                                                    <span className={`font-mono text-[12px] font-bold ml-1 ${isDimmed ? 'text-zinc-600' : getDurationColor(visualMs, isOvertime)}`}>
+                                                    <Calendar className={`w-3 h-3 ${isHovered || isToday ? 'text-indigo-600 dark:text-indigo-400' : 'text-muted-foreground/30'}`} />
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest ${isDimmed ? 'text-muted-foreground/30' : 'text-foreground/80'}`}>{dateStr}</span>
+                                                    <span className={`font-mono text-[11px] font-black ml-0.5 ${isDimmed ? 'text-muted-foreground/20' : getDurationColor(visualMs, isOvertime)}`}>
                                                         {isOvertime ? formatAbsoluteTime(visualMs) : formatWorkingTime(workingMs)}
                                                     </span>
-                                                    {isOvertime && (
-                                                        <span className={`text-[9px] font-bold ${isDimmed ? 'text-purple-900' : 'text-purple-400'} ml-0.5`}>OVERTIME</span>
-                                                    )}
-                                                </span>
+                                                </button>
                                             );
                                         })
                                 )}
@@ -508,40 +489,34 @@ export function TaskTimeline({
                     )}
 
                     {/* ── Vertical Timeline ── */}
-                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 pb-2">
+                    <div className="space-y-6 max-h-[600px] overflow-y-auto pr-3 pb-4 custom-scrollbar">
                         {groupedEvents.map((group, groupIndex) => {
-                            // Parse 'yyyy-MM-dd' + "T00:00:00" or similar to avoid TZ shift
-                            // But since the events are local, just use parts
                             const [gy, gm, gd] = group.date.split('-');
                             const dayDate = new Date(Number(gy), Number(gm) - 1, Number(gd));
+                            const isToday = group.date === format(new Date(), 'yyyy-MM-dd');
 
                             return (
                                 <div
                                     key={`day-${group.date}`}
-                                    className="relative flex flex-col pt-3 pb-1 -mx-2 px-2 rounded-xl border border-transparent hover:bg-zinc-900/40 hover:border-zinc-800/50 hover:shadow-lg hover:shadow-black/50 transition-all duration-300 group/day"
+                                    className="relative flex flex-col pt-4 px-2 rounded-2xl transition-all duration-300 group/day"
                                 >
                                     {/* ── Day Header ── */}
-                                    <div className="flex items-center gap-2 mb-3 px-1">
-                                        <div className="bg-zinc-800 h-px flex-1 rounded opacity-50 transition-colors group-hover/day:bg-blue-900/50" />
-                                        <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-zinc-500 group-hover/day:text-blue-400 transition-colors">
-                                            <Calendar className="w-3.5 h-3.5" />
+                                    <div className="flex items-center gap-4 mb-5">
+                                        <div className={`flex items-center gap-2.5 text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full border shadow-sm ${isToday ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-secondary text-muted-foreground border-border/50'}`}>
+                                            <Calendar className={`w-3.5 h-3.5 ${isToday ? 'text-indigo-100' : 'opacity-40'}`} />
                                             {format(dayDate, 'EEE, MMM d')}
                                         </div>
-                                        <div className="bg-zinc-800 h-px flex-1 rounded opacity-50 transition-colors group-hover/day:bg-blue-900/50" />
+                                        <div className="h-px bg-gradient-to-r from-border/50 to-transparent flex-1" />
                                     </div>
 
                                     {/* ── Day's Events ── */}
-                                    {/* Note: ML-5 adds space for the dots, padding left inside the elements connects them */}
-                                    <div className="relative ml-[14px] border-l-2 border-zinc-800/40 group-hover/day:border-zinc-700/60 transition-colors space-y-0 pb-1">
+                                    <div className="relative ml-[22px] border-l-[3px] border-secondary/80 group-hover/day:border-indigo-500/10 transition-colors space-y-0">
                                         {group.events.map((evt, evtIndex) => {
-                                            const isLastInGroup = evtIndex === group.events.length - 1;
-
                                             if (evt.kind === 'status') {
                                                 const { entry, durationMs, workingMs, offHoursMs, isOvertime, visualMs, isLast, index } = evt;
                                                 const bottleneck = isBottleneckStatus(entry.status);
-                                                const dotColor = isOvertime ? 'bg-purple-500 shadow-[0_0_8px_theme(colors.purple.500)]' : getStatusDotColor(entry.status);
+                                                const dotColor = isOvertime ? 'bg-indigo-600' : getStatusDotColor(entry.status);
 
-                                                // Link to global hover state
                                                 const dateStrFragment = format(new Date(entry.timestamp), 'MMM d');
                                                 const evtId = `seg-${index}`;
                                                 const isHovered = viewMode === 'status' ? hoveredId === evtId : hoveredId === dateStrFragment;
@@ -550,74 +525,77 @@ export function TaskTimeline({
                                                 return (
                                                     <div
                                                         key={`s-${evt.index}`}
-                                                        className={`relative pl-6 pb-5 group/item transition-all duration-300 ${isDimmed ? 'opacity-30 grayscale-[0.3]' : 'opacity-100'} ${isHovered ? 'scale-[1.02] translate-x-1' : ''}`}
+                                                        className={`relative pl-8 pb-8 group/item transition-all duration-300 ${isDimmed ? 'opacity-30 grayscale-[0.5]' : 'opacity-100'} ${isHovered ? 'translate-x-1' : ''}`}
                                                         onMouseEnter={() => setHoveredId(viewMode === 'status' ? evtId : dateStrFragment)}
                                                         onMouseLeave={() => setHoveredId(null)}
                                                     >
                                                         {/* Dot on the line */}
                                                         <div
-                                                            className={`absolute left-[-6px] top-1 w-[10px] h-[10px] rounded-full border-[2px] border-[#0a0a0a] group-hover/day:border-[#0f0f11] transition-colors ${dotColor} z-10`}
+                                                            className={`absolute left-[-8.5px] top-1.5 w-4 h-4 rounded-full border-[3px] border-card transition-all duration-300 ring-4 ring-transparent ${dotColor} ${isHovered ? 'scale-125 ring-indigo-500/10' : ''} z-10`}
                                                         />
 
-                                                        <div className={`flex items-start justify-between gap-3 ${isHovered ? 'bg-zinc-800/80 shadow-md ring-1 ring-zinc-700/50' : 'bg-black/20 hover:bg-black/40 group-hover/day:bg-transparent'} rounded-lg p-2 -ml-2 -mt-2 transition-all`}>
-                                                            <div className="flex-1 min-w-0 pt-0.5">
-                                                                <div className="flex items-center gap-2 flex-wrap mb-1">
+                                                        <div className={`flex items-start justify-between gap-4 rounded-2xl p-4 -ml-2 -mt-2 transition-all duration-300 border ${isHovered ? 'bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200/50 dark:border-indigo-800/50 shadow-md' : 'bg-secondary/40 border-transparent hover:bg-secondary/60 hover:border-border/30'}`}>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-3 flex-wrap mb-3">
                                                                     <span
-                                                                        className={`font-mono text-sm leading-none font-bold tracking-tight ${bottleneck
-                                                                            ? 'text-amber-300'
+                                                                        className={`text-sm font-black uppercase tracking-tight transition-colors ${bottleneck
+                                                                            ? 'text-amber-600 dark:text-amber-400'
                                                                             : entry.status === 'Completed' || entry.status === 'Staging Passed'
-                                                                                ? 'text-emerald-300'
-                                                                                : 'text-zinc-200'
+                                                                                ? 'text-emerald-600 dark:text-emerald-400'
+                                                                                : 'text-foreground'
                                                                             }`}
                                                                     >
                                                                         {entry.status}
                                                                     </span>
                                                                     {bottleneck && (
-                                                                        <Badge className="gap-0.5 text-[8px] px-1.5 py-0 bg-amber-900/60 text-amber-200 border-amber-700/50 uppercase">
-                                                                            <Zap className="w-2 h-2" />
+                                                                        <Badge className="gap-1.5 text-[8px] px-2 py-0.5 bg-amber-600 text-white border-none font-black shadow-sm uppercase tracking-widest">
+                                                                            <Zap className="w-2.5 h-2.5" />
                                                                             BOTTLENECK
                                                                         </Badge>
                                                                     )}
                                                                 </div>
 
-                                                                <div className="flex items-center gap-2 mt-1 text-[11px]">
-                                                                    <span className="text-zinc-500 font-mono tracking-wider font-medium bg-zinc-900/50 px-1.5 py-0.5 rounded">
+                                                                <div className="flex items-center gap-4 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
+                                                                    <div className="flex items-center gap-1.5 bg-background/50 px-2 py-1 rounded-lg border border-border/30">
+                                                                        <Clock className="w-3 h-3 opacity-40 text-indigo-500" />
                                                                         {format(new Date(entry.timestamp), 'HH:mm')}
-                                                                    </span>
+                                                                    </div>
                                                                     {entry.person && (
-                                                                        <span className="text-zinc-400 flex items-center gap-1 font-medium bg-zinc-900/30 px-1.5 py-0.5 rounded max-w-[120px] truncate">
-                                                                            <User className="w-3 h-3 text-zinc-500 flex-shrink-0" />
+                                                                        <div className="flex items-center gap-1.5 bg-background/50 px-2 py-1 rounded-lg border border-border/30 max-w-[150px] truncate">
+                                                                            <User className="w-3 h-3 opacity-40 text-indigo-500" />
                                                                             <span className="truncate">{entry.person}</span>
-                                                                        </span>
+                                                                        </div>
                                                                     )}
                                                                 </div>
                                                             </div>
 
-                                                            {/* Duration badge */}
+                                                            {/* Duration display */}
                                                             {durationMs > 0 && (
                                                                 <div
-                                                                    className={`flex flex-col items-end gap-0.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-mono shrink-0 shadow-sm ${isOvertime
-                                                                        ? 'bg-purple-950/30 border-purple-800/40 text-purple-300 shadow-purple-900/10'
-                                                                        : durationMs > 48 * 60 * 60 * 1000
-                                                                            ? 'bg-red-950/40 border-red-800/50 text-red-300 shadow-red-900/10'
-                                                                            : durationMs > 24 * 60 * 60 * 1000
-                                                                                ? 'bg-amber-950/40 border-amber-800/50 text-amber-300 shadow-amber-900/10'
-                                                                                : 'bg-zinc-900 border-zinc-800 text-zinc-300 shadow-black/40'
+                                                                    className={`flex flex-col items-end gap-1 px-4 py-2.5 rounded-2xl border transition-all duration-300 ${isOvertime
+                                                                        ? 'bg-indigo-100/50 border-indigo-200 dark:bg-indigo-900/40 dark:border-indigo-800'
+                                                                        : durationMs > 24 * 60 * 60 * 1000
+                                                                            ? 'bg-amber-50 border-amber-100 dark:bg-amber-950/40 dark:border-amber-900'
+                                                                            : 'bg-background border-border/50 shadow-sm'
                                                                         }`}
                                                                 >
-                                                                    <div className="flex flex-col items-end">
-                                                                        <div className="flex items-center gap-1.5 font-semibold tracking-tight">
-                                                                            {isOvertime ? <Moon className="w-3 h-3 text-purple-400" /> : <Clock className="w-3 h-3 text-current opacity-70" />}
-                                                                            {isOvertime ? formatAbsoluteTime(visualMs) : formatWorkingTime(workingMs)}
+                                                                    <div className="flex flex-col items-end leading-none">
+                                                                        <div className="flex items-center gap-2 text-[12px] font-black font-mono">
+                                                                            {isOvertime ? <Moon className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" /> : <Clock className="w-3.5 h-3.5 text-muted-foreground/30" />}
+                                                                            <span className={isOvertime ? 'text-indigo-700 dark:text-indigo-300' : getDurationColor(visualMs, false)}>
+                                                                                {isOvertime ? formatAbsoluteTime(visualMs) : formatWorkingTime(workingMs)}
+                                                                            </span>
                                                                         </div>
-                                                                        {(!isOvertime && offHoursMs > 0 && false /* Hiding off-hours as requested */) && (
-                                                                            <span className="text-[9px] text-zinc-500 tracking-wider">+{formatAbsoluteTime(offHoursMs)} off</span>
-                                                                        )}
                                                                         {isOvertime && (
-                                                                            <span className="text-[9px] text-purple-400/80 tracking-widest uppercase font-bold mt-0.5">Overtime</span>
+                                                                            <span className="text-[8px] font-black text-indigo-600/60 uppercase tracking-widest mt-1">Overtime</span>
+                                                                        )}
+                                                                        {isLast && (
+                                                                            <span className="text-[9px] text-muted-foreground/40 font-black uppercase tracking-widest mt-1.5 flex items-center gap-1">
+                                                                                <span className="w-1 h-1 rounded-full bg-indigo-500 animate-pulse" />
+                                                                                Current
+                                                                            </span>
                                                                         )}
                                                                     </div>
-                                                                    {isLast && <span className="text-[9px] text-zinc-500 tracking-wider uppercase mt-1">Current</span>}
                                                                 </div>
                                                             )}
                                                         </div>
@@ -628,78 +606,88 @@ export function TaskTimeline({
                                             // ── Meeting Note Event ──
                                             const { note } = evt;
                                             return (
-                                                <div key={`n-${note.id}`} className="relative pl-6 pb-6 mt-1">
+                                                <div key={`n-${note.id}`} className="relative pl-8 pb-10 mt-2">
                                                     {/* Diamond marker on the line */}
-                                                    <div className="absolute left-[-6px] top-1.5 w-2.5 h-2.5 rotate-45 bg-blue-500 border-[2px] border-[#0a0a0a] group-hover/day:border-[#0f0f11] z-10 shadow-sm shadow-blue-500/40 transition-colors" />
+                                                    <div className={`absolute left-[-7.5px] top-2 w-3.5 h-3.5 rotate-45 border-[3px] border-card z-10 shadow-sm transition-all duration-300 ${note.isStall ? 'bg-red-500' : 'bg-indigo-500'}`} />
 
                                                     <div
-                                                        className={`rounded-xl border p-3 hover:scale-[1.01] transition-all duration-300 shadow-md ${note.isStall
-                                                            ? 'border-red-800/40 bg-gradient-to-br from-red-950/30 to-red-950/10 hover:border-red-700/60 shadow-red-900/10'
-                                                            : 'border-blue-800/30 bg-gradient-to-br from-blue-950/20 to-blue-950/5 hover:border-blue-700/50 shadow-blue-900/10'
+                                                        className={`rounded-2xl border p-5 transition-all duration-300 shadow-xl overflow-hidden relative group/note ${note.isStall
+                                                            ? 'border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-950/20'
+                                                            : 'border-indigo-100 bg-indigo-50/50 dark:border-indigo-900/30 dark:bg-indigo-950/10'
                                                             }`}
                                                     >
-                                                        {/* Note header */}
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[11px] font-bold tracking-wide uppercase text-blue-400 flex items-center gap-1.5">
-                                                                    <MessageSquare className="w-3.5 h-3.5" />
-                                                                    Meeting Note
-                                                                </span>
-                                                                <span className="text-[10px] text-zinc-500 font-mono font-medium px-1.5 py-0.5 bg-black/40 rounded">
-                                                                    {format(new Date(note.createdAt), 'HH:mm')}
-                                                                </span>
+                                                        {/* Header background accent */}
+                                                        <div className={`absolute top-0 left-0 right-0 h-1 ${note.isStall ? 'bg-red-500' : 'bg-indigo-500'} opacity-20`} />
+
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`p-2 rounded-xl ${note.isStall ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'}`}>
+                                                                    <MessageSquare className="w-4 h-4" />
+                                                                </div>
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-[10px] font-black tracking-[0.15em] uppercase text-foreground/70">
+                                                                        Daily Meeting Note
+                                                                    </span>
+                                                                    <span className="text-[10px] text-muted-foreground/50 font-black font-mono mt-0.5">
+                                                                        {format(new Date(note.createdAt), 'HH:mm')}
+                                                                    </span>
+                                                                </div>
                                                             </div>
-                                                            <div className="flex items-center gap-1.5">
+                                                            <div className="flex items-center gap-2">
                                                                 {note.isStall && (
-                                                                    <Badge variant="destructive" className="text-[9px] px-1.5 py-0 gap-1 absolute -top-2.5 right-12 border border-red-900 shadow-sm">
+                                                                    <Badge variant="destructive" className="text-[8px] px-2 py-0.5 gap-1.5 font-black uppercase tracking-widest border border-red-200 dark:border-red-900 shadow-sm">
                                                                         <OctagonAlert className="w-2.5 h-2.5" />
                                                                         STALLED
                                                                     </Badge>
                                                                 )}
                                                                 <button
                                                                     onClick={() => onEditNote(note)}
-                                                                    className="p-1 rounded-md text-zinc-500 hover:text-blue-400 hover:bg-blue-950/50 transition-colors"
+                                                                    className="p-2 rounded-xl text-muted-foreground/30 hover:text-indigo-600 hover:bg-white dark:hover:bg-indigo-950/50 transition-all active:scale-90"
                                                                 >
                                                                     <Edit2 className="w-3.5 h-3.5" />
                                                                 </button>
                                                                 <button
                                                                     onClick={() => onDeleteNote(note.id)}
-                                                                    className="p-1 rounded-md text-zinc-500 hover:text-red-400 hover:bg-red-950/50 transition-colors"
+                                                                    className="p-2 rounded-xl text-muted-foreground/30 hover:text-red-500 hover:bg-white dark:hover:bg-red-950/50 transition-all active:scale-90"
                                                                 >
                                                                     <Trash2 className="w-3.5 h-3.5" />
                                                                 </button>
                                                             </div>
                                                         </div>
 
-                                                        <div className="space-y-2 bg-black/20 rounded-lg p-2.5 border border-white/5">
+                                                        <div className="space-y-3">
                                                             {/* Stall reason */}
                                                             {note.isStall && note.stallReason && (
-                                                                <div className="text-[12px] text-red-200">
-                                                                    <span className="text-red-500 font-bold tracking-wide uppercase text-[10px] mr-1">Why: </span>
-                                                                    {note.stallReason}
+                                                                <div className="p-3 bg-white/50 dark:bg-black/20 rounded-xl border border-red-100 dark:border-red-950/50 animate-in fade-in zoom-in-95">
+                                                                    <div className="text-[9px] font-black text-red-600 uppercase tracking-widest mb-1 opacity-60">Blocker Reason</div>
+                                                                    <div className="text-xs text-foreground font-black leading-relaxed">
+                                                                        {note.stallReason}
+                                                                    </div>
                                                                 </div>
                                                             )}
 
                                                             {/* Blocked by */}
                                                             {note.blockedBy && (
-                                                                <div className="text-[12px] text-zinc-200 flex items-center gap-2 bg-amber-950/20 px-2 py-1.5 rounded-md border border-amber-900/30">
-                                                                    <div className="bg-amber-900/50 p-1 rounded">
-                                                                        <User className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                                                                <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-950/20 px-4 py-2.5 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                                                                    <div className="bg-amber-100 dark:bg-amber-900/50 p-1.5 rounded-lg shadow-sm">
+                                                                        <User className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                                                                     </div>
-                                                                    <span className="text-zinc-400 text-[11px]">Blocked by</span>
-                                                                    <span className="font-bold text-amber-300">{note.blockedBy}</span>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-[9px] font-black text-amber-700/60 uppercase tracking-widest">Caused by</span>
+                                                                        <span className="font-black text-xs text-amber-800 dark:text-amber-300">{note.blockedBy}</span>
+                                                                    </div>
                                                                 </div>
                                                             )}
 
                                                             {/* Solution */}
                                                             {note.solution && (
-                                                                <div className="text-[12px] text-emerald-100 flex items-start gap-2 bg-emerald-950/10 px-2 py-1.5 rounded-md border border-emerald-900/20">
-                                                                    <div className="bg-emerald-900/40 p-1 rounded mt-0.5">
-                                                                        <Shield className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                                                                <div className="bg-emerald-50 dark:bg-emerald-950/10 px-4 py-3 rounded-xl border border-emerald-100 dark:border-emerald-900/20 flex gap-3 shadow-inner">
+                                                                    <div className="bg-emerald-100 dark:bg-emerald-900/40 p-1.5 rounded-lg h-fit">
+                                                                        <Shield className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                                                                     </div>
-                                                                    <div>
-                                                                        <span className="block text-emerald-600 font-bold uppercase tracking-wider text-[9px] mb-0.5">Proposed Solution</span>
-                                                                        <span className="text-emerald-200/90 leading-snug">{note.solution}</span>
+                                                                    <div className="flex-1">
+                                                                        <span className="block text-emerald-700 dark:text-emerald-600 font-black uppercase tracking-widest text-[9px] mb-1.5">Mitigation Plan</span>
+                                                                        <span className="text-xs text-foreground/80 font-bold leading-relaxed">{note.solution}</span>
                                                                     </div>
                                                                 </div>
                                                             )}
@@ -713,8 +701,22 @@ export function TaskTimeline({
                             );
                         })}
                     </div>
-                </>
+                </div>
             )}
         </div>
     );
 }
+
+// ── UTILITIES ────────────────────────────────────────────────────────
+
+function parseLocalDateLocal(dateStr: string): Date | null {
+    if (!dateStr) return null;
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return null;
+    const [y, m, d] = parts;
+    return new Date(Number(y), Number(m) - 1, Number(d));
+}
+
+type TimelineEvent =
+    | { kind: 'status'; entry: StatusHistoryEntry; durationMs: number; workingMs: number; offHoursMs: number; isOvertime: boolean; visualMs: number; isLast: boolean; index: number }
+    | { kind: 'note'; note: MeetingNote };

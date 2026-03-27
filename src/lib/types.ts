@@ -46,15 +46,17 @@ export interface StandupNote {
 
 export const WORKFLOW_STATUSES = [
     { index: 0, name: 'Not Started', isBottleneck: false, severity: 'normal' as const },
-    { index: 1, name: 'In Process', isBottleneck: false, severity: 'normal' as const },
-    { index: 2, name: 'Waiting to Integrate', isBottleneck: true, severity: 'high' as const },
-    { index: 3, name: 'Reviewing', isBottleneck: true, severity: 'high' as const },
-    { index: 4, name: 'Ready for Test', isBottleneck: false, severity: 'normal' as const },
-    { index: 5, name: 'Testing', isBottleneck: false, severity: 'normal' as const },
-    { index: 6, name: 'Reprocess', isBottleneck: true, severity: 'critical' as const },
-    { index: 7, name: 'Bug Fixing', isBottleneck: false, severity: 'normal' as const },
-    { index: 8, name: 'Staging Passed', isBottleneck: false, severity: 'normal' as const },
-    { index: 9, name: 'Completed', isBottleneck: false, severity: 'normal' as const },
+    { index: 1, name: 'Designing', isBottleneck: false, severity: 'normal' as const },
+    { index: 2, name: 'Ready for dev', isBottleneck: false, severity: 'normal' as const },
+    { index: 3, name: 'In Process', isBottleneck: false, severity: 'normal' as const },
+    { index: 4, name: 'Waiting to Integrate', isBottleneck: true, severity: 'high' as const },
+    { index: 5, name: 'Reviewing', isBottleneck: true, severity: 'high' as const },
+    { index: 6, name: 'Ready for Test', isBottleneck: false, severity: 'normal' as const },
+    { index: 7, name: 'Testing', isBottleneck: false, severity: 'normal' as const },
+    { index: 8, name: 'Reprocess', isBottleneck: true, severity: 'critical' as const },
+    { index: 9, name: 'Bug Fixing', isBottleneck: false, severity: 'normal' as const },
+    { index: 10, name: 'Staging Passed', isBottleneck: false, severity: 'normal' as const },
+    { index: 11, name: 'Completed', isBottleneck: false, severity: 'normal' as const },
 ] as const;
 
 export type RiskLevel = 'normal' | 'elevated' | 'critical';

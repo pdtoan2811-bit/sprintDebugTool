@@ -1,0 +1,3 @@
+﻿src/components/dashboard/NextSprintPlanningView.tsx(184,31): error TS2304: Cannot find name 'SyncTaskResult'.
+src/components/dashboard/NextSprintPlanningView.tsx(189,38): error TS2304: Cannot find name 'SyncTaskStatus'.
+src/components/dashboard/NextSprintPlanningView.tsx(274,34): error TS2304: Cannot find name 'VerificationResult'.

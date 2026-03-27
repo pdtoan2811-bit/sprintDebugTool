@@ -3,7 +3,8 @@ import { TaskAnalysis, RawLogEvent } from '@/lib/types';
 import { useDailyTodos } from '@/lib/hooks/useDailyTodos';
 import { format, subDays } from 'date-fns';
 import { PersonMeetingData } from './types';
-import { priorityDotColor, statusBadge } from './utils';
+import { priorityDotColor, StatusBadge } from '@/lib/status-utils';
+import { TaskCard } from '../TaskCard';
 import { Badge } from '../../ui/badge';
 import {
     ArrowRight,
@@ -140,28 +141,30 @@ export function CompareView({
     }, [carryOverTasks, yesterdayCompletionRate, yesterdayTodos, unplannedActivity, todayTodos, personData]);
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             {/* Planning Hints */}
             {planningHints.length > 0 && (
-                <div className="rounded-xl border border-zinc-800/50 bg-zinc-950/30 p-4">
-                    <div className="flex items-center gap-2 mb-3 text-zinc-300">
-                        <Lightbulb className="w-4 h-4 text-amber-400" />
-                        <span className="font-semibold text-sm">Planning Insights</span>
+                <div className="rounded-2xl border border-border bg-secondary/30 p-5 shadow-sm">
+                    <div className="flex items-center gap-2.5 mb-4 text-foreground">
+                        <Lightbulb className="w-4 h-4 text-amber-500" />
+                        <span className="font-black text-[10px] uppercase tracking-widest">Planning Insights</span>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2.5">
                         {planningHints.map((hint, idx) => (
                             <div
                                 key={idx}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs ${
+                                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold ${
                                     hint.type === 'warning'
-                                        ? 'bg-amber-950/30 text-amber-300 border border-amber-800/30'
+                                        ? 'bg-amber-50 text-amber-700 border border-amber-200 shadow-sm dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/40'
                                         : hint.type === 'success'
-                                            ? 'bg-emerald-950/30 text-emerald-300 border border-emerald-800/30'
-                                            : 'bg-blue-950/30 text-blue-300 border border-blue-800/30'
+                                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/40'
+                                            : 'bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-900/40'
                                 }`}
                             >
-                                {hint.icon}
-                                <span>{hint.message}</span>
+                                <div className="p-1 rounded-lg bg-white/50 dark:bg-black/20">
+                                    {hint.icon}
+                                </div>
+                                <span className="leading-relaxed">{hint.message}</span>
                             </div>
                         ))}
                     </div>
@@ -169,46 +172,49 @@ export function CompareView({
             )}
 
             {/* Comparison Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Yesterday's Plan */}
-                <div className="rounded-xl border border-zinc-800/50 bg-zinc-950/30 p-4">
-                    <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-800/50">
-                        <div className="flex items-center gap-2">
-                            <History className="w-4 h-4 text-purple-400" />
-                            <h3 className="font-semibold text-zinc-100">Yesterday's Plan</h3>
+                <div className="rounded-2xl border border-border bg-card/50 p-5 shadow-sm">
+                    <div className="flex items-center justify-between mb-5 pb-4 border-b border-border/50">
+                        <div className="flex items-center gap-2.5">
+                            <div className="p-1.5 rounded-lg bg-secondary">
+                                <History className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                            <h3 className="font-black text-[10px] uppercase tracking-widest text-foreground">Yesterday's Plan</h3>
                         </div>
                         <div className="flex items-center gap-2">
                             {yesterdayTodos.length > 0 && (
-                                <div className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                                <div className={`text-[9px] font-black uppercase tracking-tighter px-2 py-1 rounded-lg border ${
                                     yesterdayCompletionRate === 100
-                                        ? 'bg-emerald-950/50 text-emerald-300'
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400'
                                         : yesterdayCompletionRate >= 50
-                                            ? 'bg-amber-950/50 text-amber-300'
-                                            : 'bg-red-950/50 text-red-300'
-                                }}`}>
+                                            ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400'
+                                            : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-400'
+                                }`}>
                                     {yesterdayCompletionRate}% done
                                 </div>
                             )}
-                            <Badge variant="outline" className="text-[10px]">
-                                {yesterdayTodos.length} planned
+                            <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-border/50 bg-secondary/30">
+                                {yesterdayTodos.length} items
                             </Badge>
                         </div>
                     </div>
 
                     {yesterdayTodos.length === 0 ? (
-                        <div className="text-center py-8 text-zinc-500 text-sm">
-                            No tasks were planned for yesterday
+                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground/40 bg-secondary/20 rounded-xl border border-dashed border-border/50">
+                            <Calendar className="w-8 h-8 mb-2 opacity-20" />
+                            <p className="text-[10px] font-black uppercase tracking-widest">No previous plan</p>
                         </div>
                     ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-4">
                             {/* Completed */}
                             {yesterdayCompleted.length > 0 && (
-                                <div className="mb-3">
-                                    <div className="flex items-center gap-2 mb-2 text-emerald-400">
-                                        <CheckCircle2 className="w-3 h-3" />
-                                        <span className="text-[10px] font-semibold uppercase">Completed ({yesterdayCompleted.length})</span>
+                                <div className="space-y-2.5">
+                                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 px-1">
+                                        <CheckCircle2 className="w-3.5 h-3.5" />
+                                        <span className="text-[9px] font-black uppercase tracking-[0.2em]">Completed ({yesterdayCompleted.length})</span>
                                     </div>
-                                    <div className="space-y-1">
+                                    <div className="space-y-2">
                                         {yesterdayCompleted.map((todoItem) => {
                                             const task = analyses[todoItem.taskId];
                                             if (!task) return null;
@@ -217,37 +223,15 @@ export function CompareView({
                                                     ? task.blockedBy
                                                     : undefined;
                                             return (
-                                                <button
+                                                <TaskCard
                                                     key={todoItem.taskId}
-                                                    onClick={() => onTaskClick(task.taskId)}
-                                                    className="w-full text-left px-2 py-1.5 rounded bg-emerald-950/20 border border-emerald-800/30 hover:bg-emerald-900/30 hover:border-emerald-700/50 transition-colors group"
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <Check className="w-3 h-3 text-emerald-500" />
-                                                        <div className={`w-2 h-2 rounded-full ${priorityDotColor(task.currentStatus)}`} />
-                                                        {highRiskIds.has(task.taskId) && (
-                                                            <span className="text-red-500 text-[10px] font-bold flex-shrink-0">📌</span>
-                                                        )}
-                                                        <span className="text-[10px] font-mono text-zinc-500">{task.taskId}</span>
-                                                        <span className="text-xs text-zinc-400 truncate flex-1 line-through">{task.taskName}</span>
-                                                        <ChevronRight className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 transition-colors flex-shrink-0" />
-                                                    </div>
-                                                    <div className="flex items-center gap-2 mt-1 ml-5 flex-wrap">
-                                                        {statusBadge(task.currentStatus)}
-                                                        {task.sprintGoal && (
-                                                            <span className="text-[9px] text-zinc-500 truncate max-w-[140px]" title={task.sprintGoal}>
-                                                                <Target className="w-2.5 h-2.5 inline mr-0.5 align-middle" />
-                                                                {task.sprintGoal}
-                                                            </span>
-                                                        )}
-                                                        {blockedByLabel && (
-                                                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-950/50 text-red-300 flex items-center gap-1">
-                                                                <Hand className="w-2.5 h-2.5" />
-                                                                Blocked by {blockedByLabel}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </button>
+                                                    task={task}
+                                                    isHighRisk={highRiskIds.has(task.taskId)}
+                                                    onTaskClick={onTaskClick}
+                                                    showSprintGoal={true}
+                                                    todoCompleted={true}
+                                                    blockedByLabel={blockedByLabel}
+                                                />
                                             );
                                         })}
                                     </div>
@@ -256,12 +240,12 @@ export function CompareView({
 
                             {/* Incomplete */}
                             {yesterdayIncomplete.length > 0 && (
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2 text-red-400">
-                                        <Circle className="w-3 h-3" />
-                                        <span className="text-[10px] font-semibold uppercase">Not Completed ({yesterdayIncomplete.length})</span>
+                                <div className="space-y-2.5">
+                                    <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 px-1">
+                                        <Circle className="w-3.5 h-3.5" />
+                                        <span className="text-[9px] font-black uppercase tracking-[0.2em]">Not Completed ({yesterdayIncomplete.length})</span>
                                     </div>
-                                    <div className="space-y-1">
+                                    <div className="space-y-2">
                                         {yesterdayIncomplete.map((todoItem) => {
                                             const task = analyses[todoItem.taskId];
                                             const isCarryOver = carryOverTasks.some((c) => c.taskId === todoItem.taskId);
@@ -272,53 +256,27 @@ export function CompareView({
                                                     ? task.blockedBy
                                                     : undefined;
                                             return (
-                                                <button
+                                                <TaskCard
                                                     key={todoItem.taskId}
-                                                    onClick={() => onTaskClick(task.taskId)}
-                                                    className={`w-full text-left px-2 py-1.5 rounded border transition-colors group ${
-                                                        isCarryOver
-                                                            ? 'bg-amber-950/20 border-amber-800/30 hover:bg-amber-900/30 hover:border-amber-700/50'
-                                                            : 'bg-zinc-900/50 border-zinc-800/30 hover:bg-zinc-800/50 hover:border-zinc-700/50'
-                                                    }`}
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-3 h-3 rounded border border-zinc-600" />
-                                                        <div className={`w-2 h-2 rounded-full ${priorityDotColor(task.currentStatus)}`} />
-                                                        {highRiskIds.has(task.taskId) && (
-                                                            <span className="text-red-500 text-[10px] font-bold flex-shrink-0">📌</span>
-                                                        )}
-                                                        <span className="text-[10px] font-mono text-zinc-500">{task.taskId}</span>
-                                                        <span className="text-xs text-zinc-300 truncate flex-1">{task.taskName}</span>
-                                                        {isCarryOver && (
-                                                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-950/50 text-amber-300 flex items-center gap-1">
+                                                    task={task}
+                                                    isHighRisk={highRiskIds.has(task.taskId)}
+                                                    onTaskClick={onTaskClick}
+                                                    showSprintGoal={true}
+                                                    blockedByLabel={blockedByLabel}
+                                                    actions={
+                                                        isCarryOver ? (
+                                                            <div className="text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-amber-500 text-white shadow-sm flex items-center gap-1">
                                                                 <Repeat className="w-2.5 h-2.5" />
-                                                                Carry over?
-                                                            </span>
-                                                        )}
-                                                        {isAddedToToday && (
-                                                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-950/50 text-blue-300 flex items-center gap-1">
+                                                                Carry Over
+                                                            </div>
+                                                        ) : isAddedToToday ? (
+                                                            <div className="text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-[#1D3557] text-white shadow-sm flex items-center gap-1">
                                                                 <ArrowRight className="w-2.5 h-2.5" />
-                                                                In today
-                                                            </span>
-                                                        )}
-                                                        <ChevronRight className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 transition-colors flex-shrink-0" />
-                                                    </div>
-                                                    <div className="flex items-center gap-2 mt-1 ml-5 flex-wrap">
-                                                        {statusBadge(task.currentStatus)}
-                                                        {task.sprintGoal && (
-                                                            <span className="text-[9px] text-zinc-500 truncate max-w-[140px]" title={task.sprintGoal}>
-                                                                <Target className="w-2.5 h-2.5 inline mr-0.5 align-middle" />
-                                                                {task.sprintGoal}
-                                                            </span>
-                                                        )}
-                                                        {blockedByLabel && (
-                                                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-950/50 text-red-300 flex items-center gap-1">
-                                                                <Hand className="w-2.5 h-2.5" />
-                                                                Blocked by {blockedByLabel}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </button>
+                                                                In plan
+                                                            </div>
+                                                        ) : null
+                                                    }
+                                                />
                                             );
                                         })}
                                     </div>
@@ -329,31 +287,33 @@ export function CompareView({
                 </div>
 
                 {/* Today's Plan + System Activity */}
-                <div className="rounded-xl border border-blue-800/30 bg-blue-950/10 p-4">
-                    <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-800/50">
-                        <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-blue-400" />
-                            <h3 className="font-semibold text-zinc-100">Today's Plan</h3>
+                <div className="rounded-2xl border border-indigo-200/50 bg-indigo-50/20 p-5 shadow-sm dark:bg-indigo-950/10 dark:border-indigo-900/30">
+                    <div className="flex items-center justify-between mb-5 pb-4 border-b border-indigo-200/30 dark:border-indigo-900/30">
+                        <div className="flex items-center gap-2.5">
+                            <div className="p-1.5 rounded-lg bg-indigo-600 shadow-lg shadow-indigo-600/20">
+                                <Calendar className="w-4 h-4 text-white" />
+                            </div>
+                            <h3 className="font-black text-[10px] uppercase tracking-widest text-foreground">Today's Protocol</h3>
                         </div>
                         <div className="flex items-center gap-2">
                             {todayTodos.length > 0 && (
-                                <Badge variant="outline" className="text-[10px] border-blue-800/50 text-blue-300">
-                                    {todayTodos.length} planned
+                                <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-indigo-300 text-indigo-700 bg-white/50 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800">
+                                    {todayTodos.length} Objectives
                                 </Badge>
                             )}
                         </div>
                     </div>
 
                     {todayTodos.length === 0 && unplannedActivity.length === 0 ? (
-                        <div className="text-center py-8 text-zinc-500 text-sm">
-                            <Calendar className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                            <p>No tasks planned yet</p>
+                        <div className="flex flex-col items-center justify-center py-20 text-indigo-400 opacity-30 bg-indigo-50/50 rounded-2xl border border-dashed border-indigo-200">
+                            <Calendar className="w-12 h-12 mb-4" />
+                            <p className="font-black text-[10px] uppercase tracking-[0.2em]">Awaiting Daily Plan</p>
                         </div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             {/* Planned Tasks */}
                             {todayTodos.length > 0 && (
-                                <div className="space-y-1">
+                                <div className="space-y-2">
                                     {todayTodos.map((todoItem) => {
                                         const task = analyses[todoItem.taskId];
                                         if (!task) return null;
@@ -363,53 +323,23 @@ export function CompareView({
                                                 ? task.blockedBy
                                                 : undefined;
                                         return (
-                                            <button
+                                            <TaskCard
                                                 key={todoItem.taskId}
-                                                onClick={() => onTaskClick(task.taskId)}
-                                                className={`w-full text-left px-2 py-1.5 rounded transition-colors group ${
-                                                    hasActivity
-                                                        ? 'bg-blue-950/20 border border-blue-800/30 hover:bg-blue-900/30 hover:border-blue-700/50'
-                                                        : 'bg-zinc-900/30 border border-zinc-800/30 hover:bg-zinc-800/50 hover:border-zinc-700/50'
-                                                }`}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    {todoItem.completedAt ? (
-                                                        <Check className="w-3 h-3 text-emerald-500" />
-                                                    ) : (
-                                                        <div className="w-3 h-3 rounded border border-zinc-600" />
-                                                    )}
-                                                    <div className={`w-2 h-2 rounded-full ${priorityDotColor(task.currentStatus)}`} />
-                                                    {highRiskIds.has(task.taskId) && (
-                                                        <span className="text-red-500 text-[10px] font-bold flex-shrink-0">📌</span>
-                                                    )}
-                                                    <span className="text-[10px] font-mono text-zinc-500">{task.taskId}</span>
-                                                    <span className={`text-xs truncate flex-1 ${todoItem.completedAt ? 'text-zinc-500 line-through' : 'text-zinc-300'}`}>
-                                                        {task.taskName}
-                                                    </span>
-                                                    {hasActivity && (
-                                                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-950/50 text-blue-300 flex items-center gap-1">
-                                                            <Sparkles className="w-2.5 h-2.5" />
+                                                task={task}
+                                                isHighRisk={highRiskIds.has(task.taskId)}
+                                                onTaskClick={onTaskClick}
+                                                showSprintGoal={true}
+                                                isInTodoList={true}
+                                                todoCompleted={!!todoItem.completedAt}
+                                                blockedByLabel={blockedByLabel}
+                                                actions={
+                                                    hasActivity ? (
+                                                        <div className="text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-emerald-600 text-white shadow-sm animate-pulse">
                                                             Active
-                                                        </span>
-                                                    )}
-                                                    <ChevronRight className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 transition-colors flex-shrink-0" />
-                                                </div>
-                                                <div className="flex items-center gap-2 mt-1 ml-5 flex-wrap">
-                                                    {statusBadge(task.currentStatus)}
-                                                    {task.sprintGoal && (
-                                                        <span className="text-[9px] text-zinc-500 truncate max-w-[140px]" title={task.sprintGoal}>
-                                                            <Target className="w-2.5 h-2.5 inline mr-0.5 align-middle" />
-                                                            {task.sprintGoal}
-                                                        </span>
-                                                    )}
-                                                    {blockedByLabel && (
-                                                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-950/50 text-red-300 flex items-center gap-1">
-                                                            <Hand className="w-2.5 h-2.5" />
-                                                            Blocked by {blockedByLabel}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </button>
+                                                        </div>
+                                                    ) : null
+                                                }
+                                            />
                                         );
                                     })}
                                 </div>
@@ -417,54 +347,40 @@ export function CompareView({
 
                             {/* Unplanned Activity */}
                             {unplannedActivity.length > 0 && (
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2 pt-2 border-t border-blue-900/30">
-                                        <Sparkles className="w-3 h-3 text-amber-400" />
-                                        <span className="text-[10px] font-semibold uppercase text-amber-400">Unplanned Activity ({unplannedActivity.length})</span>
+                                <div className="space-y-3 pt-4 border-t border-indigo-200/30 dark:border-indigo-900/30">
+                                    <div className="flex items-center gap-2 px-1">
+                                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">Field Activity Detected ({unplannedActivity.length})</span>
                                     </div>
-                                    <div className="space-y-1">
+                                    <div className="space-y-2">
                                         {unplannedActivity.map((task) => {
                                             const blockedByLabel =
                                                 task.blockedBy && task.blockedBy !== personData.person
                                                     ? task.blockedBy
                                                     : undefined;
                                             return (
-                                                <button
+                                                <TaskCard
                                                     key={task.taskId}
-                                                    onClick={() => onTaskClick(task.taskId)}
-                                                    className="w-full text-left px-2 py-1.5 rounded bg-amber-950/10 border border-amber-900/30 hover:bg-amber-900/20 hover:border-amber-800/50 transition-colors group"
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <div className={`w-2 h-2 rounded-full ${priorityDotColor(task.currentStatus)}`} />
-                                                        {highRiskIds.has(task.taskId) && (
-                                                            <span className="text-red-500 text-[10px] font-bold flex-shrink-0">📌</span>
-                                                        )}
-                                                        <span className="text-[10px] font-mono text-zinc-500">{task.taskId}</span>
-                                                        <span className="text-xs text-amber-100/70 truncate flex-1">{task.taskName}</span>
-                                                        <ChevronRight className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 transition-colors flex-shrink-0" />
-                                                    </div>
-                                                    <div className="flex items-center gap-2 mt-1 ml-5 flex-wrap">
-                                                        {statusBadge(task.currentStatus)}
-                                                        {task.sprintGoal && (
-                                                            <span className="text-[9px] text-zinc-500 truncate max-w-[140px]" title={task.sprintGoal}>
-                                                                <Target className="w-2.5 h-2.5 inline mr-0.5 align-middle" />
-                                                                {task.sprintGoal}
-                                                            </span>
-                                                        )}
-                                                        {blockedByLabel && (
-                                                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-950/50 text-red-300 flex items-center gap-1">
-                                                                <Hand className="w-2.5 h-2.5" />
-                                                                Blocked by {blockedByLabel}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </button>
+                                                    task={task}
+                                                    isHighRisk={highRiskIds.has(task.taskId)}
+                                                    onTaskClick={onTaskClick}
+                                                    showSprintGoal={true}
+                                                    blockedByLabel={blockedByLabel}
+                                                    actions={
+                                                        <div className="text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-amber-500 text-white shadow-sm animate-pulse">
+                                                            Detected
+                                                        </div>
+                                                    }
+                                                />
                                             );
                                         })}
                                     </div>
-                                    <p className="text-[9px] text-zinc-500 mt-2 ml-1">
-                                        Tasks with system activity today that aren't in your plan.
-                                    </p>
+                                    <div className="flex items-center gap-2 px-3 py-2 bg-amber-50/50 dark:bg-amber-950/20 rounded-lg border border-amber-100/50 dark:border-amber-900/30 shadow-inner">
+                                        <div className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
+                                        <p className="text-[9px] text-amber-700/60 dark:text-amber-500/60 font-bold tracking-tight">
+                                            Telemetry confirms active throughput on these unlisted items.
+                                        </p>
+                                    </div>
                                 </div>
                             )}
                         </div>

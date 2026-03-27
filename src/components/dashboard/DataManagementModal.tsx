@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Database, Download, Upload, Trash2, AlertTriangle, FileText, CheckCircle2 } from 'lucide-react';
+import { Database, Download, Upload, Trash2, AlertTriangle, FileText, CheckCircle2, X } from 'lucide-react';
 import {
     Sheet,
     SheetContent,
@@ -134,55 +134,79 @@ export function DataManagementModal() {
             }
         }}>
             <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                    <Database className="h-4 w-4" />
-                    Data & Settings
+                <Button variant="outline" size="sm" className="gap-2.5 font-black uppercase tracking-widest text-[10px] rounded-xl border-border/50 bg-secondary/30 hover:bg-secondary hover:border-border transition-all">
+                    <Database className="h-3.5 w-3.5 text-indigo-500" />
+                    Vault & Config
                 </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[400px] sm:w-[540px] flex flex-col gap-6 p-6 overflow-y-auto">
-                <SheetHeader>
-                    <SheetTitle className="flex items-center gap-2 text-xl font-semibold">
-                        <Database className="h-5 w-5" />
-                        Data Management
-                    </SheetTitle>
-                    <SheetDescription className="text-sm mt-1">
-                        Manage your sprint data, notes, and blockers. All data is stored locally in your browser.
-                    </SheetDescription>
-                </SheetHeader>
+            <SheetContent side="right" className="w-[400px] sm:w-[500px] flex flex-col gap-0 p-0 border-l border-border bg-card/95 backdrop-blur-xl shadow-2xl">
+                <div className="p-6 border-b border-border/50 bg-secondary/20 relative">
+                    <SheetHeader>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 rounded-xl bg-indigo-600 shadow-lg shadow-indigo-600/20">
+                                <Database className="h-5 w-5 text-white" />
+                            </div>
+                            <SheetTitle className="text-sm font-black uppercase tracking-[0.2em] text-foreground">
+                                Data Management
+                            </SheetTitle>
+                        </div>
+                        <SheetDescription className="text-xs font-bold text-muted-foreground/60 leading-relaxed italic pr-8">
+                            Control technical telemetry, persistent notations, and core sprint configurations. All adjustments are locally synchronized.
+                        </SheetDescription>
+                    </SheetHeader>
+                    
+                    <button onClick={() => setIsOpen(false)} className="absolute top-6 right-6 p-1.5 rounded-lg hover:bg-secondary text-muted-foreground/40 hover:text-foreground transition-all">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
 
-                <div className="flex flex-col gap-4 mt-4">
-                    <div className="p-4 bg-muted/30 border rounded-lg">
-                        <h3 className="text-md font-semibold mb-3 flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-blue-500" />
-                            Current Local Data
-                        </h3>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="flex flex-col">
-                                <span className="text-muted-foreground">Notes</span>
-                                <span className="font-semibold text-xl">{notesCount}</span>
+                <div className="flex-1 p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6">
+                    {/* Stats Grid */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 px-1">
+                            <FileText className="h-3.5 w-3.5 text-indigo-500" />
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.15em] text-foreground/80">
+                                Local Registry Status
+                            </h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="p-3 rounded-xl bg-secondary/30 border border-border/50 shadow-sm flex flex-col gap-1 hover:border-indigo-500/30 transition-all group">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 group-hover:text-indigo-500 transition-colors">Notations</span>
+                                <span className="text-2xl font-black text-foreground">{notesCount}</span>
+                                <div className="mt-2 w-8 h-1 rounded-full bg-indigo-500/20 group-hover:w-16 transition-all" />
                             </div>
-                            <div className="flex flex-col">
-                                <span className="text-muted-foreground">Meeting Notes</span>
-                                <span className="font-semibold text-xl">{meetingNotesCount}</span>
+                            <div className="p-3 rounded-xl bg-secondary/30 border border-border/50 shadow-sm flex flex-col gap-1 hover:border-indigo-500/30 transition-all group">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 group-hover:text-indigo-500 transition-colors">Meeting Logs</span>
+                                <span className="text-2xl font-black text-foreground">{meetingNotesCount}</span>
+                                <div className="mt-2 w-8 h-1 rounded-full bg-indigo-500/20 group-hover:w-16 transition-all" />
                             </div>
-                            <div className="flex flex-col">
-                                <span className="text-muted-foreground">Blockers Marked</span>
-                                <span className="font-semibold text-xl">{blockersCount}</span>
+                            <div className="p-4 rounded-2xl bg-secondary/30 border border-border/50 shadow-sm flex flex-col gap-1 hover:border-rose-500/30 transition-all group">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 group-hover:text-rose-500 transition-colors">High Risk Markers</span>
+                                <span className="text-2xl font-black text-foreground">{blockersCount}</span>
+                                <div className="mt-2 w-8 h-1 rounded-full bg-rose-500/20 group-hover:w-16 transition-all" />
                             </div>
-                            <div className="flex flex-col">
-                                <span className="text-muted-foreground">Sprint Configs</span>
-                                <span className="font-semibold text-xl">{configs.length}</span>
+                            <div className="p-3 rounded-xl bg-secondary/30 border border-border/50 shadow-sm flex flex-col gap-1 hover:border-indigo-500/30 transition-all group">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 group-hover:text-indigo-500 transition-colors">Sprint Parameters</span>
+                                <span className="text-2xl font-black text-foreground">{configs.length}</span>
+                                <div className="mt-2 w-8 h-1 rounded-full bg-indigo-500/20 group-hover:w-16 transition-all" />
                             </div>
                         </div>
                     </div>
 
-                    <div className="my-4 border-t" />
+                    <div className="h-px bg-border/50" />
 
-                    <div className="flex flex-col gap-3">
-                        <h3 className="text-md font-semibold">Backup & Restore</h3>
-                        <p className="text-xs text-muted-foreground mb-2">
-                            Export your data to a file to back it up or transfer it to another browser.
-                        </p>
+                    {/* Actions */}
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2 px-1">
+                                <Download className="h-3.5 w-3.5 text-indigo-500" />
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.15em] text-foreground/80">Backup & Recovery</h3>
+                            </div>
+                            <p className="text-[10px] font-bold text-muted-foreground/50 leading-relaxed px-1">
+                                Generate a cryptographic package of all current local states or restore from an existing protocol backup.
+                            </p>
+                        </div>
 
                         <input
                             type="file"
@@ -193,40 +217,49 @@ export function DataManagementModal() {
                         />
 
                         <div className="grid grid-cols-2 gap-3">
-                            <Button variant="default" className="w-full gap-2" onClick={handleExport}>
+                            <Button variant="default" className="h-11 rounded-lg text-[10px] font-black uppercase tracking-widest gap-2 bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 transition-all active:scale-95" onClick={handleExport}>
                                 <Download className="h-4 w-4" />
-                                Export Backup
+                                Export Vault
                             </Button>
-                            <Button variant="outline" className="w-full gap-2" onClick={handleImportClick}>
+                            <Button variant="outline" className="h-11 rounded-lg text-[10px] font-black uppercase tracking-widest gap-2 border-border hover:bg-secondary transition-all active:scale-95" onClick={handleImportClick}>
                                 <Upload className="h-4 w-4" />
-                                Import Data
+                                Restore Protocol
                             </Button>
                         </div>
 
                         {importStatus === 'success' && (
-                            <div className="bg-green-50 text-green-700 p-3 rounded-md text-sm flex items-center gap-2 mt-2">
-                                <CheckCircle2 className="h-4 w-4" />
-                                Data imported successfully. Reloading...
+                            <div className="bg-emerald-50 text-emerald-700 p-4 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 border border-emerald-200 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="p-1 rounded-lg bg-emerald-500 text-white">
+                                    <CheckCircle2 className="h-4 w-4" />
+                                </div>
+                                Telemetry loaded. System reboot imminent.
                             </div>
                         )}
 
                         {importStatus === 'error' && (
-                            <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm flex items-center gap-2 mt-2">
-                                <AlertTriangle className="h-4 w-4 shrink-0" />
-                                Failed to import: {importErrorMsg}
+                            <div className="bg-rose-50 text-rose-700 p-4 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 border border-rose-200 animate-in shake duration-300">
+                                <div className="p-1 rounded-lg bg-rose-500 text-white">
+                                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                                </div>
+                                System mismatch: {importErrorMsg}
                             </div>
                         )}
                     </div>
 
-                    <div className="mt-8 border-t pt-6">
-                        <h3 className="text-md font-semibold text-destructive mb-3">Danger Zone</h3>
-                        <Button variant="destructive" className="w-full gap-2" onClick={handleClearData}>
-                            <Trash2 className="h-4 w-4" />
-                            Clear All Local Data
-                        </Button>
-                        <p className="text-xs text-muted-foreground mt-2 text-center">
-                            This will permanently delete all your notes and settings from this browser.
-                        </p>
+                    <div className="mt-auto pt-6 border-t border-border/50">
+                        <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/20 space-y-4">
+                            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                                <AlertTriangle className="h-4 w-4" />
+                                <h3 className="text-[10px] font-black uppercase tracking-widest">Critical Override</h3>
+                            </div>
+                            <p className="text-[9px] font-bold text-rose-700/60 dark:text-rose-400/60 leading-relaxed italic">
+                                Executing a wipe will purge all local registries. This operation cannot be reversed without an external backup.
+                            </p>
+                            <Button variant="destructive" className="w-full h-10 rounded-lg text-[10px] font-black uppercase tracking-widest gap-2 bg-rose-600 hover:bg-rose-700 shadow-lg shadow-rose-600/20 transition-all active:scale-95" onClick={handleClearData}>
+                                <Trash2 className="h-4 w-4" />
+                                Purge All Data
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </SheetContent>

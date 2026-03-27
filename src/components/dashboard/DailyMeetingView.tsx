@@ -44,6 +44,7 @@ import {
     Zap,
     Settings,
     Shield,
+    X,
 } from 'lucide-react';
 import { WebhookSettingsModal } from './WebhookSettingsModal';
 
@@ -58,11 +59,12 @@ interface DailyMeetingViewProps {
 }
 
 import { TaskCategory, CategoryFilterKey, DEFAULT_CATEGORY_FILTER, PersonMeetingData } from './daily-meeting/types';
-import { computePersonMeetingData, getVisibleTaskCount, priorityDotColor, statusBadge, formatCorporateName, ACTIVE_STATUSES, formatTodoListForDM, formatTodoListForWebhook, sendTodoListToWebhook, getLatestMeetingNote } from './daily-meeting/utils';
+import { computePersonMeetingData, getVisibleTaskCount, formatCorporateName, ACTIVE_STATUSES, formatTodoListForDM, formatTodoListForWebhook, sendTodoListToWebhook, getLatestMeetingNote } from './daily-meeting/utils';
+import { priorityDotColor, StatusBadge } from '@/lib/status-utils';
 import { PersonSingleView } from './daily-meeting/PersonSingleView';
 import { HistoricalView } from './daily-meeting/HistoricalView';
 import { CompareView } from './daily-meeting/CompareView';
-import { DraggableTaskCard } from './daily-meeting/DraggableTaskCard';
+import { TaskCard } from './TaskCard';
 
 interface AllPersonsViewProps {
     personData: PersonMeetingData[];
@@ -76,33 +78,33 @@ function AllPersonsView({ personData, categoryFilter, highRiskIds, onTaskClick, 
     const renderTaskButton = (task: TaskAnalysis, colorScheme: 'doing' | 'blocking' | 'blocked' | 'notStarted') => {
         const isHighRisk = highRiskIds.has(task.taskId);
         const colorClasses = {
-            doing: 'bg-zinc-900/50 border-zinc-800/30 hover:bg-zinc-800/50 hover:border-zinc-700/50 text-zinc-300',
-            blocking: 'bg-amber-950/20 border-amber-800/30 hover:bg-amber-900/30 hover:border-amber-700/50 text-amber-200',
-            blocked: 'bg-red-950/20 border-red-800/30 hover:bg-red-900/30 hover:border-red-700/50 text-red-200',
-            notStarted: 'bg-zinc-900/50 border-zinc-800/30 hover:bg-zinc-800/50 hover:border-zinc-700/50 text-zinc-300',
+            doing: 'bg-blue-50/50 border-blue-100 text-[#1D3557] hover:bg-blue-100/50 transition-all',
+            blocking: 'bg-amber-50/50 border-amber-100 text-amber-900 hover:bg-amber-100/50 transition-all',
+            blocked: 'bg-red-50/50 border-red-100 text-red-900 hover:bg-red-100/50 transition-all',
+            notStarted: 'bg-secondary/40 border-border/50 text-foreground/80 hover:bg-secondary/60 transition-all',
         };
 
         return (
             <button
                 key={task.taskId}
                 onClick={() => onTaskClick(task.taskId)}
-                className={`w-full text-left px-2 py-1.5 rounded border transition-colors group ${colorClasses[colorScheme]}`}
+                className={`w-full text-left px-3 py-2 rounded-xl border flex items-center gap-3 transition-all active:scale-[0.98] group ${colorClasses[colorScheme]}`}
             >
-                <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${priorityDotColor(task.currentStatus)}`} />
-                    {isHighRisk && (
-                        <span className="text-red-500 text-[10px] font-bold flex-shrink-0">📌</span>
-                    )}
-                    <span className="text-[10px] font-mono text-zinc-500">{task.taskId}</span>
-                    <span className="text-xs truncate flex-1">{task.taskName}</span>
-                    <ChevronRight className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 transition-colors flex-shrink-0" />
-                </div>
+                <div className={`w-2 h-2 rounded-full shrink-0 ${priorityDotColor(task.currentStatus)} shadow-sm`} />
+                {isHighRisk && (
+                    <div className="w-5 h-5 flex items-center justify-center bg-rose-500 rounded-full shrink-0 shadow-sm">
+                        <span className="text-[10px] text-white font-bold">!</span>
+                    </div>
+                )}
+                <span className="text-[11px] font-bold font-mono text-muted-foreground/60 group-hover:text-foreground/70 transition-colors tracking-tight">{task.taskId}</span>
+                <span className="text-[11px] font-bold truncate flex-1 leading-tight">{task.taskName}</span>
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-foreground/50 transition-all group-hover:translate-x-0.5" />
             </button>
         );
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {personData.map((data) => {
                 const hasBlocking = data.categories.blockingOthers.length > 0;
                 const hasBlocked = data.categories.blockedByOthers.length > 0;
@@ -111,114 +113,81 @@ function AllPersonsView({ personData, categoryFilter, highRiskIds, onTaskClick, 
                 return (
                     <div
                         key={data.person}
-                        className={`rounded-xl border p-4 transition-all ${
+                        className={`rounded-xl border p-4 transition-all hover:shadow-xl group/card ${
                             hasBlocking
-                                ? 'border-amber-700/60 bg-amber-950/10'
+                                ? 'border-amber-300/40 bg-amber-50/20 dark:border-amber-700/30 dark:bg-amber-950/5 shadow-lg shadow-amber-500/5'
                                 : hasBlocked
-                                    ? 'border-red-700/40 bg-red-950/10'
+                                    ? 'border-rose-300/40 bg-rose-50/20 dark:border-rose-700/30 dark:bg-rose-950/5 shadow-lg shadow-rose-500/5'
                                     : hasDoing
-                                        ? 'border-blue-700/40 bg-blue-950/10'
-                                        : 'border-zinc-800 bg-zinc-950/50'
+                                        ? 'border-blue-300/40 bg-blue-50/20 dark:border-blue-700/30 dark:bg-blue-950/5 shadow-lg shadow-blue-500/5'
+                                        : 'border-border bg-card shadow-sm'
                         }`}
                     >
-                        <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-800/50">
-                            <div className="flex items-center gap-2">
-                                <div className={`w-3 h-3 rounded-full ${
-                                    hasBlocking ? 'bg-amber-500 animate-pulse' :
-                                    hasBlocked ? 'bg-red-500 animate-pulse' :
-                                    hasDoing ? 'bg-blue-500' : 'bg-zinc-500'
-                                }`} />
-                                <h3 className="font-semibold text-zinc-100">{data.person}</h3>
+                        <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/50">
+                            <div className="flex items-center gap-4">
+                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-[11px] font-bold shadow-sm transition-transform group-hover/card:scale-110 ${
+                                    hasBlocking ? 'bg-amber-500 text-white shadow-amber-200' :
+                                    hasBlocked ? 'bg-rose-500 text-white shadow-rose-200' :
+                                    hasDoing ? 'bg-[#1D3557] text-white shadow-blue-200' : 'bg-secondary text-muted-foreground'
+                                }`}>
+                                    {data.person.substring(0, 2).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-foreground tracking-tight text-sm leading-none">{data.person}</h3>
+                                    <p className="text-[10px] font-bold text-muted-foreground/50 mt-1 tracking-tight">{data.totalTasks} Total Objectives</p>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2 text-[10px] font-mono flex-wrap">
-                                {categoryFilter.doing && data.categories.doing.length > 0 && (
-                                    <Badge className="bg-blue-950/50 text-blue-300 border-blue-800/50">
-                                        {data.categories.doing.length} doing
-                                    </Badge>
-                                )}
-                                {categoryFilter.blockingOthers && data.categories.blockingOthers.length > 0 && (
-                                    <Badge className="bg-amber-950/50 text-amber-300 border-amber-800/50">
-                                        {data.categories.blockingOthers.length} blocking
-                                    </Badge>
-                                )}
-                                {categoryFilter.blockedByOthers && data.categories.blockedByOthers.length > 0 && (
-                                    <Badge className="bg-red-950/50 text-red-300 border-red-800/50">
-                                        {data.categories.blockedByOthers.length} blocked
-                                    </Badge>
-                                )}
-                                {categoryFilter.notStarted && data.categories.notStartedInSprint.length > 0 && (
-                                    <Badge className="bg-orange-950/50 text-orange-300 border-orange-800/50">
-                                        {data.categories.notStartedInSprint.length} no activity
-                                    </Badge>
-                                )}
-                                {categoryFilter.other && data.categories.other.length > 0 && (
-                                    <Badge className="bg-zinc-800/50 text-zinc-400 border-zinc-700/50">
-                                        {data.categories.other.length} pending
-                                    </Badge>
-                                )}
+                            <div className="flex -space-x-1.5">
+                                {hasBlocking && <div className="w-2.5 h-2.5 rounded-full bg-amber-500 border-2 border-white dark:border-black shadow-sm z-10" />}
+                                {hasBlocked && <div className="w-2.5 h-2.5 rounded-full bg-rose-500 border-2 border-white dark:border-black shadow-sm z-20" />}
+                                {hasDoing && <div className="w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-white dark:border-black shadow-sm z-30" />}
                             </div>
                         </div>
 
-                        <div className="space-y-3">
-                            {categoryFilter.doing && data.categories.doing.length > 0 && (
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2 text-blue-400">
-                                        <PlayCircle className="w-3 h-3" />
-                                        <span className="text-[10px] font-semibold uppercase">Doing</span>
-                                    </div>
-                                    <div className="space-y-1">
-                                        {data.categories.doing.map((task) => renderTaskButton(task, 'doing'))}
-                                    </div>
-                                </div>
-                            )}
+                        <div className="space-y-4">
+                            {(['doing', 'blockingOthers', 'blockedByOthers', 'notStarted', 'other'] as const).map(key => {
+                                const categoryKey = key === 'notStarted' ? 'notStartedInSprint' : key;
+                                const tasks = data.categories[categoryKey];
+                                if (!categoryFilter[key] || tasks.length === 0) return null;
 
-                            {categoryFilter.blockingOthers && data.categories.blockingOthers.length > 0 && (
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2 text-amber-400">
-                                        <Hand className="w-3 h-3" />
-                                        <span className="text-[10px] font-semibold uppercase">Blocking others</span>
-                                    </div>
-                                    <div className="space-y-1">
-                                        {data.categories.blockingOthers.map((task) => renderTaskButton(task, 'blocking'))}
-                                    </div>
-                                </div>
-                            )}
+                                const colors = {
+                                    doing: 'text-blue-600 dark:text-blue-400',
+                                    blockingOthers: 'text-amber-600 dark:text-amber-400',
+                                    blockedByOthers: 'text-rose-600 dark:text-rose-400',
+                                    notStarted: 'text-foreground/40',
+                                    other: 'text-foreground/40'
+                                };
 
-                            {categoryFilter.blockedByOthers && data.categories.blockedByOthers.length > 0 && (
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2 text-red-400">
-                                        <UserX className="w-3 h-3" />
-                                        <span className="text-[10px] font-semibold uppercase">Blocked by others</span>
-                                    </div>
-                                    <div className="space-y-1">
-                                        {data.categories.blockedByOthers.map((task) => renderTaskButton(task, 'blocked'))}
-                                    </div>
-                                </div>
-                            )}
+                                const icons = {
+                                    doing: <PlayCircle className="w-3.5 h-3.5" />,
+                                    blockingOthers: <Hand className="w-3.5 h-3.5" />,
+                                    blockedByOthers: <UserX className="w-3.5 h-3.5" />,
+                                    notStarted: <AlertTriangle className="w-3.5 h-3.5 opacity-30" />,
+                                    other: <Clock className="w-3.5 h-3.5 opacity-30" />
+                                };
 
-                            {categoryFilter.notStarted && data.categories.notStartedInSprint.length > 0 && (
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2 text-orange-400">
-                                        <AlertTriangle className="w-3 h-3" />
-                                        <span className="text-[10px] font-semibold uppercase">No Activity in Sprint</span>
-                                    </div>
-                                    <div className="space-y-1">
-                                        {data.categories.notStartedInSprint.map((task) => renderTaskButton(task, 'notStarted'))}
-                                    </div>
-                                </div>
-                            )}
+                                const labels = {
+                                    doing: 'In Progress',
+                                    blockingOthers: 'Blocking Others',
+                                    blockedByOthers: 'Impeded',
+                                    notStarted: 'Stale / No Activity',
+                                    other: 'Awaiting Action'
+                                };
 
-                            {categoryFilter.other && data.categories.other.length > 0 && (
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2 text-zinc-400">
-                                        <Clock className="w-3 h-3" />
-                                        <span className="text-[10px] font-semibold uppercase">Pending</span>
+                                return (
+                                    <div key={key} className="space-y-2">
+                                        <div className={`flex items-center gap-2 px-1 ${colors[key]}`}>
+                                            {icons[key]}
+                                            <span className="text-[11px] font-bold tracking-tight">{labels[key]}</span>
+                                            <div className="h-px flex-1 bg-current opacity-20 ml-1" />
+                                            <span className="text-[11px] font-bold opacity-60 ml-1">{tasks.length}</span>
+                                        </div>
+                                        <div className="space-y-1 px-0.5">
+                                            {tasks.map((task) => renderTaskButton(task, key === 'blockingOthers' ? 'blocking' : key === 'blockedByOthers' ? 'blocked' : key === 'doing' ? 'doing' : 'notStarted'))}
+                                        </div>
                                     </div>
-                                    <div className="space-y-1">
-                                        {data.categories.other.map((task) => renderTaskButton(task, 'notStarted'))}
-                                    </div>
-                                </div>
-                            )}
+                                );
+                            })}
                         </div>
                     </div>
                 );
@@ -343,7 +312,6 @@ function SquadsView({
         setTimeout(() => setSendResult(null), 3000);
     }, [sending, squadMembers, dateStr, dailyTodos, analyses, meetingNotes, allPersonData]);
 
-    // Compute derived tasks for Backlog (aligned with NextSprintPlanningView approach)
     const { combinationBacklogs, individualBacklog } = useMemo(() => {
         if (squadMembers.length === 0) return { combinationBacklogs: [], individualBacklog: {} as Record<string, TaskAnalysis[]> };
 
@@ -351,7 +319,6 @@ function SquadsView({
         const individual: Record<string, TaskAnalysis[]> = {};
         squadMembers.forEach(sm => individual[sm] = []);
 
-        // Use all uncompleted, sprint-filtered tasks — same approach as NextSprintPlanningView
         const uncompletedTasks: TaskAnalysis[] = [];
         Object.values(analyses).forEach(task => {
             if (task.currentStatus === 'Completed') return;
@@ -360,20 +327,14 @@ function SquadsView({
         });
 
         uncompletedTasks.forEach(task => {
-            // Use currentPerson directly (same as NextSprintPlanningView)
             const assignees = task.currentPerson ? task.currentPerson.split(',').map(p => p.trim()).filter(Boolean) : [];
             const involved = squadMembers.filter(sm => assignees.includes(sm));
-
-            if (involved.length === 0) return; // Task not assigned to any squad member
-
-            // Check if fully planned by all involved squad members
+            if (involved.length === 0) return;
             const isFullyPlanned = involved.every(sm => {
                 const todos = dailyTodos.getTodosForPersonDate(sm, dateStr);
                 return todos.some(todo => todo.taskId === task.taskId);
             });
-
-            if (isFullyPlanned) return; // Skip if fully planned
-
+            if (isFullyPlanned) return;
             if (involved.length > 1) {
                 involved.sort((a, b) => a.localeCompare(b));
                 const key = involved.join('|');
@@ -388,45 +349,31 @@ function SquadsView({
 
         const combinationArray = Array.from(combinations.entries()).map(([key, tasks]) => {
             tasks.sort((a, b) => b.staleDurationMs - a.staleDurationMs);
-            return {
-                involvedList: key.split('|'),
-                tasks
-            };
+            return { involvedList: key.split('|'), tasks };
         });
 
-        // Sort combinations: largest groups first, then alphabetically
         combinationArray.sort((a, b) => {
-            if (a.involvedList.length !== b.involvedList.length) {
-                return b.involvedList.length - a.involvedList.length;
-            }
+            if (a.involvedList.length !== b.involvedList.length) return b.involvedList.length - a.involvedList.length;
             return a.involvedList.join(',').localeCompare(b.involvedList.join(','));
         });
 
-        Object.keys(individual).forEach(key => {
-            individual[key].sort((a, b) => b.staleDurationMs - a.staleDurationMs);
-        });
-
+        Object.keys(individual).forEach(key => individual[key].sort((a, b) => b.staleDurationMs - a.staleDurationMs));
         return { combinationBacklogs: combinationArray, individualBacklog: individual };
     }, [analyses, squadMembers, activeSprint, dailyTodos, dateStr]);
 
-    // Compute derived tasks for Squad Plan
     const { combinationPlans, individualPlans } = useMemo(() => {
         const combinations = new Map<string, { task: TaskAnalysis, plannedBy: Set<string>, involved: string[] }>();
         const individual: Record<string, { task: TaskAnalysis, completedAt?: string }[]> = {};
         squadMembers.forEach(sm => individual[sm] = []);
-
         squadMembers.forEach(sm => {
             const todos = dailyTodos.getTodosForPersonDate(sm, dateStr);
             todos.forEach(todo => {
                 const task = analyses[todo.taskId];
                 if (!task || (activeSprint && String(task.sprint) !== String(activeSprint))) return;
-
-                // Robustly check who in the squad has this planned
                 const involved = squadMembers.filter(m => {
                     const personTodos = dailyTodos.getTodosForPersonDate(m, dateStr);
                     return personTodos.some(t => t.taskId === task.taskId);
                 });
-
                 if (involved.length > 1) {
                     involved.sort((a, b) => a.localeCompare(b));
                     const key = involved.join('|');
@@ -437,36 +384,23 @@ function SquadsView({
                         combinations.get(compKey)!.plannedBy.add(sm);
                     }
                 } else if (involved.length === 1) {
-                    if (!individual[sm].some(t => t.task.taskId === task.taskId)) {
-                        individual[sm].push({ task, completedAt: todo.completedAt });
-                    }
+                    if (!individual[sm].some(t => t.task.taskId === task.taskId)) individual[sm].push({ task, completedAt: todo.completedAt });
                 }
             });
         });
 
-        // Group combinations together by involved members
         const groupedMap = new Map<string, { task: TaskAnalysis, plannedBy: Set<string>, involved: string[] }[]>();
-        
         combinations.forEach((data) => {
             const key = data.involved.join('|');
             if (!groupedMap.has(key)) groupedMap.set(key, []);
             groupedMap.get(key)!.push(data);
         });
 
-        const combinationArray = Array.from(groupedMap.entries()).map(([key, items]) => {
-            return {
-                involvedList: key.split('|'),
-                items
-            };
-        });
-
+        const combinationArray = Array.from(groupedMap.entries()).map(([key, items]) => ({ involvedList: key.split('|'), items }));
         combinationArray.sort((a, b) => {
-            if (a.involvedList.length !== b.involvedList.length) {
-                return b.involvedList.length - a.involvedList.length;
-            }
+            if (a.involvedList.length !== b.involvedList.length) return b.involvedList.length - a.involvedList.length;
             return a.involvedList.join(',').localeCompare(b.involvedList.join(','));
         });
-
         return { combinationPlans: combinationArray, individualPlans: individual };
     }, [squadMembers, dailyTodos, dateStr, analyses]);
 
@@ -481,9 +415,7 @@ function SquadsView({
         setDragOverTodo(true);
     };
 
-    const handleDragLeave = () => {
-        setDragOverTodo(false);
-    };
+    const handleDragLeave = () => setDragOverTodo(false);
 
     const handleDrop = (e: DragEvent) => {
         e.preventDefault();
@@ -494,19 +426,14 @@ function SquadsView({
             if (!task) return;
             const assignees = task.currentPerson ? task.currentPerson.split(',').map(p => p.trim()) : [];
             const involved = squadMembers.filter(m => assignees.includes(m));
-            
             if (involved.length > 0) {
                 involved.forEach(sm => {
                     const todos = dailyTodos.getTodosForPersonDate(sm, dateStr);
-                    if (!todos.some(t => t.taskId === taskId)) {
-                        dailyTodos.addTodo(sm, dateStr, taskId);
-                    }
+                    if (!todos.some(t => t.taskId === taskId)) dailyTodos.addTodo(sm, dateStr, taskId);
                 });
             } else if (squadMembers.length === 1) {
                  const todos = dailyTodos.getTodosForPersonDate(squadMembers[0], dateStr);
-                 if (!todos.some(t => t.taskId === taskId)) {
-                     dailyTodos.addTodo(squadMembers[0], dateStr, taskId);
-                 }
+                 if (!todos.some(t => t.taskId === taskId)) dailyTodos.addTodo(squadMembers[0], dateStr, taskId);
             }
         }
     };
@@ -519,13 +446,13 @@ function SquadsView({
 
         const getCategoryLabel = () => {
             if (task.currentStatus === 'Reprocess' || task.currentStatus === 'Reviewing' || task.currentStatus === 'Waiting to Integrate') {
-                return { text: 'In bottleneck', color: 'bg-amber-950/50 text-amber-300', icon: <AlertTriangle className="w-2.5 h-2.5" /> };
+                return { text: 'In bottleneck', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300', icon: <AlertTriangle className="w-2.5 h-2.5" /> };
             }
             if (ACTIVE_STATUSES.has(task.currentStatus)) {
-                return { text: 'Active', color: 'bg-blue-950/50 text-blue-300', icon: <PlayCircle className="w-2.5 h-2.5" /> };
+                return { text: 'Active', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300', icon: <PlayCircle className="w-2.5 h-2.5" /> };
             }
             if (task.currentStatus === 'Not Started') {
-                return { text: 'Not started', color: 'bg-zinc-800/50 text-zinc-400', icon: <Circle className="w-2.5 h-2.5" /> };
+                return { text: 'Not started', color: 'bg-secondary text-muted-foreground', icon: <Circle className="w-2.5 h-2.5" /> };
             }
             return undefined;
         };
@@ -533,32 +460,23 @@ function SquadsView({
         const onQuickAdd = () => {
             const assignees = task.currentPerson ? task.currentPerson.split(',').map(p => p.trim()) : [];
             const involved = squadMembers.filter(m => assignees.includes(m));
-            if (involved.length > 0) {
-                involved.forEach(sm => dailyTodos.addTodo(sm, dateStr, task.taskId));
-            } else if (squadMembers.length === 1) {
-                dailyTodos.addTodo(squadMembers[0], dateStr, task.taskId);
-            }
+            if (involved.length > 0) involved.forEach(sm => dailyTodos.addTodo(sm, dateStr, task.taskId));
+            else if (squadMembers.length === 1) dailyTodos.addTodo(squadMembers[0], dateStr, task.taskId);
         };
 
         const onRemove = () => {
-            if (isSharedPlan && sharedPlanData) {
-                sharedPlanData.plannedBy.forEach(sm => dailyTodos.removeTodo(sm, dateStr, task.taskId));
-            } else if (member) {
-                dailyTodos.removeTodo(member, dateStr, task.taskId);
-            }
+            if (isSharedPlan && sharedPlanData) sharedPlanData.plannedBy.forEach(sm => dailyTodos.removeTodo(sm, dateStr, task.taskId));
+            else if (member) dailyTodos.removeTodo(member, dateStr, task.taskId);
         };
 
         const onToggle = () => {
-            if (isSharedPlan && sharedPlanData) {
-                sharedPlanData.plannedBy.forEach(sm => dailyTodos.toggleTodoComplete(sm, dateStr, task.taskId));
-            } else if (member) {
-                dailyTodos.toggleTodoComplete(member, dateStr, task.taskId);
-            }
+            if (isSharedPlan && sharedPlanData) sharedPlanData.plannedBy.forEach(sm => dailyTodos.toggleTodoComplete(sm, dateStr, task.taskId));
+            else if (member) dailyTodos.toggleTodoComplete(member, dateStr, task.taskId);
         };
 
         return (
             <div key={task.taskId} className="relative group/card">
-                <DraggableTaskCard
+                <TaskCard
                     task={task}
                     isHighRisk={highRiskIds.has(task.taskId)}
                     onTaskClick={onTaskClick}
@@ -567,36 +485,23 @@ function SquadsView({
                     isInTodoList={context === 'plan'}
                     todoCompleted={completed}
                     showSprintGoal={context === 'plan'}
-                    showQuickAdd={context === 'backlog'}
-                    onQuickAdd={onQuickAdd}
+                    showMetadata={true}
                     onRemoveFromTodo={onRemove}
                     onToggleComplete={onToggle}
                     categoryLabel={getCategoryLabel()}
-                    blockedByLabel={blockedByLabel}
-                    renderActions={
-                        isSharedPlan && sharedPlanData && !completed ? (
-                            <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-700 rounded p-0.5" onClick={(e) => e.stopPropagation()}>
-                                {sharedPlanData.involved.map(inv => {
-                                    const isPlanning = sharedPlanData.plannedBy.has(inv);
-                                    return (
-                                        <button
-                                            key={inv}
-                                            onClick={() => {
-                                                if (isPlanning) dailyTodos.removeTodo(inv, dateStr, task.taskId);
-                                                else dailyTodos.addTodo(inv, dateStr, task.taskId);
-                                            }}
-                                            className={`px-1.5 h-5 min-w-[20px] flex items-center justify-center rounded text-[10px] font-bold transition-colors ${
-                                                isPlanning 
-                                                    ? 'bg-indigo-600 text-white' 
-                                                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
-                                            }`}
-                                            title={isPlanning ? `${inv} planned this` : `Add to ${inv}'s plan`}
-                                        >
-                                            {formatCorporateName(inv)}
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                    actions={
+                        context === 'backlog' ? (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onQuickAdd();
+                                }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1D3557] hover:bg-[#1D3557]/90 text-white text-[10px] font-bold transition-all shadow-lg shadow-[#1D3557]/20 active:scale-95 ml-1"
+                                title="Deploy to daily plan"
+                            >
+                                <Plus className="w-3 h-3" />
+                                Deploy
+                            </button>
                         ) : null
                     }
                 />
@@ -605,14 +510,20 @@ function SquadsView({
     };
 
     return (
-        <div className="space-y-4 flex flex-col min-h-[500px]">
+        <div className="space-y-4 flex flex-col min-h-[500px] animate-in fade-in duration-500">
             {/* Personnel Selector Row */}
-            <div className="bg-zinc-950/50 p-3 rounded-xl border border-zinc-800 flex flex-col gap-2 flex-shrink-0">
-                <div className="flex items-center gap-2 mb-1">
-                    <Users className="w-4 h-4 text-indigo-400" />
-                    <span className="font-semibold text-zinc-200 text-sm">Gradually form your squad</span>
+            <div className="bg-card p-4 rounded-xl border border-border flex flex-col gap-3 flex-shrink-0 shadow-2xl shadow-indigo-500/5 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl -mr-16 -mt-16 group-hover:bg-indigo-500/10 transition-all duration-700" />
+                <div className="flex items-center gap-3 relative">
+                    <div className="p-1.5 bg-indigo-600 rounded-lg shadow-lg shadow-indigo-600/20">
+                        <Users className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-bold tracking-tight text-foreground">Personnel Assembly</h3>
+                        <p className="text-[10px] font-medium text-muted-foreground/50 mt-1">Form the collaborative squad context for synchronization.</p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 px-1 custom-scrollbar relative">
                     {sortedAllPersonData.map(p => {
                         const isSelected = selectedPersonsFilter.has(p.person);
                         return (
@@ -624,14 +535,14 @@ function SquadsView({
                                     else next.add(p.person);
                                     setSelectedPersonsFilter(next);
                                 }}
-                                className={`flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${
+                                className={`flex-shrink-0 flex items-center gap-2.5 px-3 py-2 rounded-xl border transition-all active:scale-95 ${
                                     isSelected 
-                                        ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(79,70,229,0.3)]'
-                                        : 'bg-zinc-900/80 border-zinc-700/80 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+                                        ? 'bg-indigo-600 border-indigo-500 text-white shadow-xl shadow-indigo-600/30'
+                                        : 'bg-secondary/40 border-border/50 text-muted-foreground hover:bg-secondary hover:text-foreground shadow-sm'
                                 }`}
                             >
-                                <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white/80' : 'bg-zinc-600'}`} />
-                                <span className="text-sm font-medium">{p.person}</span>
+                                <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white shadow-lg animate-pulse' : 'bg-muted-foreground/30'}`} />
+                                <span className="text-xs font-bold tracking-tight">{p.person}</span>
                             </button>
                         );
                     })}
@@ -639,74 +550,70 @@ function SquadsView({
             </div>
 
             {selectedPersonsFilter.size === 0 ? (
-                <div className="flex-1 flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950/50">
-                    <div className="text-center py-12 px-4 max-w-md">
-                        <Users className="w-12 h-12 mx-auto mb-4 text-indigo-500/30" />
-                        <h3 className="text-zinc-200 font-semibold mb-2">No Personnel Selected</h3>
-                        <p className="text-sm text-zinc-400">
-                            Select one or more team members above to start forming a squad. The views below will dynamically update to show shared tasks, individual tasks, and blockers for the selected team members.
+                <div className="flex-1 flex items-center justify-center rounded-xl border border-dashed border-border/60 bg-secondary/10 animate-pulse">
+                    <div className="text-center py-20 px-8 max-w-sm">
+                        <div className="w-20 h-20 bg-indigo-500/5 rounded-full flex items-center justify-center mx-auto mb-8">
+                            <Users className="w-10 h-10 text-indigo-500/20" />
+                        </div>
+                        <h3 className="text-foreground/50 font-bold text-sm mb-4 tracking-tight">Zero Context Initialized</h3>
+                        <p className="text-xs font-medium text-muted-foreground/40 leading-relaxed">
+                            Initialize the squad cluster by selecting personnel from the assembly terminal above.
                         </p>
                     </div>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1 min-h-0">
                     {/* Left Column: Squad Backlog */}
-                    <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4 flex flex-col min-h-0 overflow-hidden" style={{ maxHeight: '70vh' }}>
-                        <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-800/50 flex-shrink-0">
-                            <div className="flex items-center gap-2">
-                                <Layers className="w-4 h-4 text-indigo-400" />
-                                <h3 className="font-semibold text-zinc-100">Squad Backlog</h3>
+                    <div className="rounded-xl border border-border bg-secondary/10 shadow-2xl shadow-zinc-500/5 p-5 flex flex-col min-h-0 overflow-hidden" style={{ maxHeight: '75vh' }}>
+                        <div className="flex items-center justify-between mb-5 pb-3 border-b border-border/50 flex-shrink-0">
+                            <div className="flex items-center gap-4">
+                                <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-600">
+                                    <Layers className="w-5 h-5 font-bold" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-bold tracking-tight text-foreground leading-none">Global Backlog</h3>
+                                    <p className="text-[10px] font-bold text-muted-foreground/40 mt-1 tracking-tight">Available Objectives: {combinationBacklogs.reduce((sum, g) => sum + g.tasks.length, 0) + squadMembers.reduce((sum, m) => sum + individualBacklog[m].length, 0)}</p>
+                                </div>
                             </div>
-                            <Badge variant="outline" className="text-[10px] border-indigo-800/50 text-indigo-300 bg-indigo-950/20">
-                                {combinationBacklogs.reduce((sum, g) => sum + g.tasks.length, 0) + squadMembers.reduce((sum, m) => sum + individualBacklog[m].length, 0)} tasks
-                            </Badge>
                         </div>
 
-                        <div className="text-[10px] text-zinc-500 mb-3 flex items-center gap-1 flex-shrink-0">
-                            <GripVertical className="w-3 h-3" />
-                            Drag tasks to the Squad Plan to plan them
+                        <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-indigo-50/40 dark:bg-indigo-950/10 border border-indigo-100/50 dark:border-indigo-900/30 rounded-xl flex-shrink-0">
+                            <GripVertical className="w-4 h-4 text-indigo-500/40" />
+                            <span className="text-[10px] font-bold tracking-tight text-indigo-600/70">Interactive Transfer: Drag to Sync Protocol</span>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-6 pb-8">
-                            {/* Combination Backlog Sections */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-3 space-y-5 pb-5">
                             {combinationBacklogs.map(group => (
-                                <div key={group.involvedList.join('|')} className="space-y-2">
-                                    <div className="flex items-center gap-2 text-indigo-400 border-b border-indigo-900/30 pb-1">
-                                        <Users className="w-3.5 h-3.5" />
-                                        <h4 className="text-xs font-semibold uppercase tracking-wider">
+                                <div key={group.involvedList.join('|')} className="space-y-3">
+                                    <div className="flex items-center gap-3 text-indigo-600 border-b border-indigo-100/50 pb-2">
+                                        <Users className="w-4 h-4" />
+                                        <h4 className="text-[13px] font-bold tracking-tight">
                                             {group.involvedList.length === squadMembers.length 
-                                                ? `Shared by Squad (${group.tasks.length})`
-                                                : `Shared: ${group.involvedList.join(', ')} (${group.tasks.length})`}
+                                                ? `Squad Collective (${group.tasks.length})`
+                                                : `Collaborative: ${group.involvedList.join(', ')} (${group.tasks.length})`}
                                         </h4>
                                     </div>
-                                    <div className="space-y-1.5 pl-2 border-l border-indigo-900/30">
+                                    <div className="space-y-2 pl-3 border-l-2 border-indigo-500/10">
                                         {group.tasks.map(task => renderCard(task, 'backlog'))}
                                     </div>
                                 </div>
                             ))}
 
-                            {/* Individual Backlog Sections */}
                             {squadMembers.map(member => {
                                 const tasks = individualBacklog[member] || [];
                                 if (tasks.length === 0) return null;
                                 return (
-                                    <div key={member} className="space-y-2">
-                                        <div className="flex items-center gap-2 text-zinc-400 border-b border-zinc-800/50 pb-1">
-                                            <User className="w-3.5 h-3.5" />
-                                            <h4 className="text-xs font-semibold uppercase tracking-wider">{member}'s Tasks ({tasks.length})</h4>
+                                    <div key={member} className="space-y-3">
+                                        <div className="flex items-center gap-3 text-muted-foreground border-b border-border/50 pb-2">
+                                            <User className="w-4 h-4" />
+                                            <h4 className="text-[11px] font-black uppercase tracking-[0.15em]">{member} Individual ({tasks.length})</h4>
                                         </div>
-                                        <div className="space-y-1.5 pl-2 border-l border-zinc-800/50">
+                                        <div className="space-y-2 pl-3 border-l-2 border-border/40">
                                             {tasks.map(task => renderCard(task, 'backlog', member))}
                                         </div>
                                     </div>
                                 );
                             })}
-
-                            {combinationBacklogs.length === 0 && squadMembers.every(m => individualBacklog[m].length === 0) && (
-                                <div className="text-center py-8 text-zinc-500 text-sm border-t border-zinc-800/30 mt-4">
-                                    No tasks in backlog for the selected personnel.
-                                </div>
-                            )}
                         </div>
                     </div>
 
@@ -715,81 +622,74 @@ function SquadsView({
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
-                        className={`rounded-xl border p-4 flex flex-col min-h-0 overflow-hidden transition-colors ${
+                        className={`rounded-xl border p-5 flex flex-col min-h-0 overflow-hidden transition-all duration-500 ${
                             dragOverTodo
-                                ? 'border-indigo-500 bg-indigo-950/20 border-dashed'
-                                : 'border-zinc-800 bg-zinc-950/50'
+                                ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/20 translate-y-[-4px] shadow-2xl shadow-indigo-500/20'
+                                : 'border-border bg-secondary/30 shadow-2xl shadow-zinc-500/5'
                         }`}
-                        style={{ maxHeight: '70vh' }}
+                        style={{ maxHeight: '75vh' }}
                     >
-                        <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-800/50 flex-shrink-0">
-                            <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-emerald-400" />
-                                <h3 className="font-semibold text-zinc-100">Squad Plan for {isToday(selectedDate) ? "Today" : format(selectedDate, 'MMM d')}</h3>
-                                {squadMembers.some(sm => dailyTodos.getTodosForPersonDate(sm, dateStr).length > 0) && (
-                                    <div className="flex items-center gap-1 ml-2">
-                                        <button
-                                            type="button"
-                                            onClick={handleCopyForDM}
-                                            className="p-1.5 rounded-md hover:bg-zinc-700/80 text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1"
-                                            title="Copy all squad plans for DM"
-                                        >
-                                            {copied ? (
-                                                <span className="text-[10px] text-emerald-400 font-medium px-1">Copied!</span>
-                                            ) : (
-                                                <Copy className="w-3.5 h-3.5" />
-                                            )}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={handleSendToWebhook}
-                                            disabled={sending}
-                                            className={`p-1.5 rounded-md transition-colors flex items-center gap-1 ${
-                                                sending
-                                                    ? 'bg-indigo-900/50 text-indigo-300 cursor-not-allowed'
-                                                    : sendResult
-                                                        ? sendResult.success
-                                                            ? 'bg-emerald-900/50 text-emerald-300'
-                                                            : 'bg-red-900/50 text-red-300'
-                                                        : 'hover:bg-indigo-700/80 text-indigo-400 hover:text-indigo-200'
-                                            }`}
-                                            title="Send all squad plans to Lark"
-                                        >
-                                            {sending ? (
-                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                            ) : sendResult ? (
-                                                <span className={`text-[10px] font-medium px-1 ${sendResult.success ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                    {sendResult.message}
-                                                </span>
-                                            ) : (
-                                                <Send className="w-3.5 h-3.5" />
-                                            )}
-                                        </button>
-                                    </div>
-                                )}
+                        <div className="flex items-center justify-between mb-5 pb-3 border-b border-border/50 flex-shrink-0">
+                            <div className="flex items-center gap-4">
+                                <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-600">
+                                    <Calendar className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground leading-none flex items-center gap-2">
+                                        Active Sync Protocol
+                                        <span className="text-[8px] bg-emerald-500 text-white px-1 rounded">V2</span>
+                                    </h3>
+                                    <p className="text-[10px] font-bold text-muted-foreground/50 mt-1 uppercase tracking-widest">{isToday(selectedDate) ? "Today" : format(selectedDate, 'MMM d')}'s Deployment Vector</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-1.5">
+                                <button
+                                    onClick={handleCopyForDM}
+                                    className={`p-2 rounded-xl border transition-all active:scale-90 ${
+                                        copied ? 'bg-emerald-600 border-emerald-500 text-white shadow-lg' : 'bg-secondary/40 border-border/50 text-muted-foreground/60 hover:bg-secondary hover:text-foreground'
+                                    }`}
+                                    title="Copy Assembly Code"
+                                >
+                                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                </button>
+                                <button
+                                    onClick={handleSendToWebhook}
+                                    disabled={sending}
+                                    className={`p-2 rounded-xl border transition-all active:scale-90 ${
+                                        sending ? 'bg-indigo-600 text-white animate-pulse' : 
+                                        sendResult ? (sendResult.success ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-rose-600 border-rose-500 text-white') :
+                                        'bg-indigo-600 border-indigo-500 text-white shadow-xl shadow-indigo-600/20 hover:bg-indigo-700'
+                                    }`}
+                                >
+                                    {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                </button>
                             </div>
                         </div>
 
                         {dragOverTodo && (
-                            <div className="flex items-center justify-center py-4 mb-3 rounded-lg border-2 border-dashed border-indigo-500/50 bg-indigo-950/30 flex-shrink-0">
-                                <Plus className="w-4 h-4 text-indigo-400 mr-2" />
-                                <span className="text-indigo-300 text-sm">Drop to plan for squad</span>
+                            <div className="flex items-center justify-center py-6 mb-5 rounded-xl border-2 border-dashed border-indigo-500/40 bg-indigo-500/5 flex-shrink-0 animate-in zoom-in-95 duration-300">
+                                <div className="flex flex-col items-center gap-3">
+                                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-xl">
+                                        <Plus className="w-6 h-6 text-white" />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">Commit to Plan</span>
+                                </div>
                             </div>
                         )}
 
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-6 pb-8">
-                            {/* Combination Plans Sections */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-3 space-y-5 pb-5">
                              {combinationPlans.map(group => (
-                                <div key={group.involvedList.join('|')} className="space-y-2">
-                                    <div className="flex items-center gap-2 text-indigo-400 border-b border-indigo-900/30 pb-1">
-                                        <Users className="w-3.5 h-3.5" />
-                                        <h4 className="text-xs font-semibold uppercase tracking-wider">
+                                <div key={group.involvedList.join('|')} className="space-y-3">
+                                    <div className="flex items-center gap-3 text-emerald-600 border-b border-emerald-100/50 pb-2">
+                                        <Users className="w-4 h-4" />
+                                        <h4 className="text-[11px] font-black uppercase tracking-[0.15em]">
                                             {group.involvedList.length === squadMembers.length 
-                                                ? `Squad Deliverables`
+                                                ? `Collective Objectives`
                                                 : `Shared: ${group.involvedList.join(', ')}`}
                                         </h4>
                                     </div>
-                                    <div className="space-y-1.5 pl-2 border-l border-indigo-900/30">
+                                    <div className="space-y-2 pl-3 border-l-2 border-emerald-500/10">
                                         {group.items.map(planData => {
                                             const isCompleted = Array.from(planData.plannedBy).some(sm => {
                                                 const t = dailyTodos.getTodosForPersonDate(sm, dateStr).find(tt => tt.taskId === planData.task.taskId);
@@ -801,17 +701,16 @@ function SquadsView({
                                 </div>
                             ))}
 
-                            {/* Individual Plans Sections */}
                             {squadMembers.map(member => {
                                 const plans = individualPlans[member] || [];
                                 if (plans.length === 0) return null;
                                 return (
-                                    <div key={member} className="space-y-2">
-                                        <div className="flex items-center gap-2 text-emerald-400 border-b border-emerald-900/30 pb-1">
-                                            <User className="w-3.5 h-3.5" />
-                                            <h4 className="text-xs font-semibold uppercase tracking-wider">{member}'s Plan</h4>
+                                    <div key={member} className="space-y-3">
+                                        <div className="flex items-center gap-3 text-emerald-600/70 border-b border-emerald-100/50 pb-2">
+                                            <User className="w-4 h-4" />
+                                            <h4 className="text-[11px] font-black uppercase tracking-[0.15em]">{member} Objectives</h4>
                                         </div>
-                                        <div className="space-y-1.5 pl-2 border-l border-emerald-900/30">
+                                        <div className="space-y-2 pl-3 border-l-2 border-emerald-500/10">
                                             {plans.map(p => renderCard(p.task, 'plan', member, !!p.completedAt, false))}
                                         </div>
                                     </div>
@@ -819,10 +718,11 @@ function SquadsView({
                             })}
                             
                             {combinationPlans.length === 0 && squadMembers.every(m => individualPlans[m].length === 0) && !dragOverTodo && (
-                                <div className="text-center py-12 text-zinc-500 border-t border-zinc-800/30 mt-4">
-                                    <Calendar className="w-10 h-10 mx-auto mb-3 opacity-30 text-emerald-500" />
-                                    <p className="text-sm">No tasks planned for the squad</p>
-                                    <p className="text-xs mt-1">Drag tasks from the backlog to plan</p>
+                                <div className="text-center py-12 bg-secondary/20 rounded-xl border border-dashed border-border/60">
+                                    <Calendar className="w-10 h-10 mx-auto mb-4 opacity-10 text-emerald-500" />
+                                    <h5 className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/30 leading-relaxed italic">
+                                        The mission plan remains unpopulated.<br/>Select and drag objectives to initialize.
+                                    </h5>
                                 </div>
                             )}
                         </div>
@@ -865,9 +765,7 @@ export function DailyMeetingView({
     }, [personData, categoryFilter]);
 
     const currentPersonData = useMemo(() => {
-        if (!selectedPerson && filteredPersonData.length > 0) {
-            return filteredPersonData[0];
-        }
+        if (!selectedPerson && filteredPersonData.length > 0) return filteredPersonData[0];
         return filteredPersonData.find((p) => p.person === selectedPerson) || filteredPersonData[0];
     }, [selectedPerson, filteredPersonData]);
 
@@ -877,7 +775,6 @@ export function DailyMeetingView({
         let totalBlocked = 0;
         let totalNotStarted = 0;
         let totalOther = 0;
-
         filteredPersonData.forEach((p) => {
             if (categoryFilter.doing) totalDoing += p.categories.doing.length;
             if (categoryFilter.blockingOthers) totalBlocking += p.categories.blockingOthers.length;
@@ -885,7 +782,6 @@ export function DailyMeetingView({
             if (categoryFilter.notStarted) totalNotStarted += p.categories.notStartedInSprint.length;
             if (categoryFilter.other) totalOther += p.categories.other.length;
         });
-
         return { totalDoing, totalBlocking, totalBlocked, totalNotStarted, totalOther };
     }, [filteredPersonData, categoryFilter]);
 
@@ -899,45 +795,30 @@ export function DailyMeetingView({
     }, []);
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-5 animate-in fade-in duration-700">
             {/* Control Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-zinc-800/50">
-                {/* View Mode Toggle */}
-                <div className="flex items-center gap-2">
-                    <div className="flex rounded-lg border border-zinc-800 p-0.5 bg-zinc-950">
-                        <button
-                            onClick={() => setViewMode('single')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                                viewMode === 'single'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'text-zinc-400 hover:text-zinc-200'
-                            }`}
-                        >
-                            <User className="w-3 h-3" />
-                            Single Person
-                        </button>
-                        <button
-                            onClick={() => setViewMode('all')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                                viewMode === 'all'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'text-zinc-400 hover:text-zinc-200'
-                            }`}
-                        >
-                            <Users className="w-3 h-3" />
-                            View All
-                        </button>
-                        <button
-                            onClick={() => setViewMode('squads')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                                viewMode === 'squads'
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'text-zinc-400 hover:text-zinc-200'
-                            }`}
-                        >
-                            <Users className="w-3 h-3" />
-                            Squads
-                        </button>
+            <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-border/50 bg-background/50 backdrop-blur-xl sticky top-0 z-[60] py-2">
+                <div className="flex items-center gap-4">
+                    {/* View Mode Toggle */}
+                    <div className="flex bg-secondary/60 p-0.5 rounded-xl border border-border/50 shadow-inner">
+                        {[
+                            { id: 'single', name: 'Personnel', icon: <User className="w-3.5 h-3.5" /> },
+                            { id: 'all', name: 'Fleet View', icon: <Users className="w-3.5 h-3.5" /> },
+                            { id: 'squads', name: 'Squad Ops', icon: <Layers className="w-3.5 h-3.5" /> }
+                        ].map(mode => (
+                            <button
+                                key={mode.id}
+                                onClick={() => setViewMode(mode.id as any)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                    viewMode === mode.id
+                                        ? 'bg-card text-foreground shadow-lg scale-105'
+                                        : 'text-muted-foreground/50 hover:text-foreground/70'
+                                }`}
+                            >
+                                {mode.icon}
+                                <span className="hidden sm:inline">{mode.name}</span>
+                            </button>
+                        ))}
                     </div>
 
                     {/* Person Selector (only in single mode) */}
@@ -945,53 +826,34 @@ export function DailyMeetingView({
                         <div className="relative">
                             <button
                                 onClick={() => setPersonDropdownOpen(!personDropdownOpen)}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 transition-colors"
+                                className="flex items-center gap-3 px-5 py-3 rounded-2xl border border-border/80 bg-card hover:border-indigo-500/50 hover:bg-secondary/20 transition-all shadow-sm group"
                             >
-                                <div className={`w-2 h-2 rounded-full ${
-                                    currentPersonData.categories.blockingOthers.length > 0
-                                        ? 'bg-amber-500'
-                                        : currentPersonData.categories.blockedByOthers.length > 0
-                                            ? 'bg-red-500'
-                                            : 'bg-blue-500'
+                                <div className={`w-2.5 h-2.5 rounded-full shrink-0 shadow-sm ${
+                                    currentPersonData.categories.blockingOthers.length > 0 ? 'bg-amber-500 animate-pulse' :
+                                    currentPersonData.categories.blockedByOthers.length > 0 ? 'bg-rose-500 animate-pulse' : 'bg-blue-500'
                                 }`} />
-                                <span className="text-sm text-zinc-200">{currentPersonData.person}</span>
-                                <ChevronDown className="w-3 h-3 text-zinc-500" />
+                                <span className="text-xs font-black uppercase tracking-tight text-foreground truncate max-w-[120px]">{currentPersonData.person}</span>
+                                <ChevronDown className={`w-4 h-4 text-muted-foreground/40 transition-transform duration-300 ${personDropdownOpen ? 'rotate-180' : ''}`} />
                             </button>
                             {personDropdownOpen && (
                                 <>
-                                    <div
-                                        className="fixed inset-0 z-10"
-                                        onClick={() => setPersonDropdownOpen(false)}
-                                    />
-                                    <div className="absolute top-full left-0 mt-1 w-64 max-h-80 overflow-y-auto custom-scrollbar rounded-lg border border-zinc-700 bg-zinc-900 shadow-xl z-20">
+                                    <div className="fixed inset-0 z-40" onClick={() => setPersonDropdownOpen(false)} />
+                                    <div className="absolute top-full left-0 mt-3 w-72 max-h-[25rem] overflow-y-auto custom-scrollbar rounded-3xl border border-border/80 bg-card shadow-2xl z-50 p-2 animate-in slide-in-from-top-2 duration-300">
                                         {filteredPersonData.map((p) => (
                                             <button
                                                 key={p.person}
-                                                onClick={() => {
-                                                    setSelectedPerson(p.person);
-                                                    setPersonDropdownOpen(false);
-                                                }}
-                                                className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-zinc-800 transition-colors ${
-                                                    p.person === currentPersonData.person ? 'bg-zinc-800' : ''
-                                                }`}
+                                                onClick={() => { setSelectedPerson(p.person); setPersonDropdownOpen(false); }}
+                                                className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-2xl hover:bg-secondary/50 transition-all group ${p.person === currentPersonData.person ? 'bg-secondary/30' : ''}`}
                                             >
-                                                <div className={`w-2 h-2 rounded-full ${
-                                                    p.categories.blockingOthers.length > 0
-                                                        ? 'bg-amber-500'
-                                                        : p.categories.blockedByOthers.length > 0
-                                                            ? 'bg-red-500'
-                                                            : p.categories.doing.length > 0
-                                                                ? 'bg-blue-500'
-                                                                : 'bg-zinc-500'
+                                                <div className={`w-2 h-2 rounded-full shrink-0 ${
+                                                    p.categories.blockingOthers.length > 0 ? 'bg-amber-500' :
+                                                    p.categories.blockedByOthers.length > 0 ? 'bg-rose-500' :
+                                                    p.categories.doing.length > 0 ? 'bg-blue-500' : 'bg-muted-foreground/30'
                                                 }`} />
-                                                <span className="text-sm text-zinc-200 flex-1">{p.person}</span>
-                                                <div className="flex items-center gap-1">
-                                                    {p.categories.blockingOthers.length > 0 && (
-                                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-950/50 text-amber-300">
-                                                            {p.categories.blockingOthers.length}
-                                                        </span>
-                                                    )}
-                                                    <span className="text-[10px] text-zinc-500">{p.totalTasks}</span>
+                                                <span className="text-xs font-bold text-foreground flex-1 uppercase tracking-tight">{p.person}</span>
+                                                <div className="flex items-center gap-1.5">
+                                                    {p.categories.blockingOthers.length > 0 && <span className="text-[9px] font-black px-1.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-600">!</span>}
+                                                    <span className="text-[10px] font-black text-muted-foreground/30 font-mono">{p.totalTasks}</span>
                                                 </div>
                                             </button>
                                         ))}
@@ -1006,290 +868,155 @@ export function DailyMeetingView({
                 {viewMode === 'single' && (
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={() => {
-                                setShowCompare(!showCompare);
-                                if (!showCompare) setShowHistory(false);
-                            }}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
-                                showCompare
-                                    ? 'border-cyan-600 bg-cyan-950/30 text-cyan-300'
-                                    : 'border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600'
+                            onClick={() => { setShowCompare(!showCompare); if (!showCompare) setShowHistory(false); }}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                                showCompare ? 'bg-indigo-600 border-indigo-500 text-white shadow-xl shadow-indigo-600/30' : 'bg-card text-muted-foreground/60 hover:text-foreground border-border/60 hover:border-indigo-500/50'
                             }`}
                         >
-                            <GitCompare className="w-3 h-3" />
+                            <GitCompare className="w-3.5 h-3.5" />
                             Compare
                         </button>
                         <button
-                            onClick={() => {
-                                setShowHistory(!showHistory);
-                                if (!showHistory) setShowCompare(false);
-                            }}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
-                                showHistory
-                                    ? 'border-purple-600 bg-purple-950/30 text-purple-300'
-                                    : 'border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600'
+                            onClick={() => { setShowHistory(!showHistory); if (!showHistory) setShowCompare(false); }}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                                showHistory ? 'bg-indigo-600 border-indigo-500 text-white shadow-xl shadow-indigo-600/30' : 'bg-card text-muted-foreground/60 hover:text-foreground border-border/60 hover:border-indigo-500/50'
                             }`}
                         >
-                            <History className="w-3 h-3" />
+                            <History className="w-3.5 h-3.5" />
                             History
                         </button>
 
                         {!showHistory && !showCompare && (
-                            <div className="flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-900 p-0.5">
-                                <button
-                                    onClick={() => navigateDate('prev')}
-                                    className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
-                                >
-                                    <ChevronLeft className="w-4 h-4" />
+                            <div className="flex items-center gap-1 rounded-2xl border border-border/50 bg-secondary/40 p-1 shrink-0 ml-2">
+                                <button onClick={() => navigateDate('prev')} className="p-2.5 rounded-xl hover:bg-card text-muted-foreground/40 hover:text-foreground transition-all active:scale-90"><ChevronLeft className="w-4 h-4" /></button>
+                                <button onClick={() => setSelectedDate(new Date())} className={`px-5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${isToday(selectedDate) ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground/40 hover:bg-card hover:text-foreground'}`}>
+                                    {isToday(selectedDate) ? 'Live' : format(selectedDate, 'MMM d')}
                                 </button>
-                                <button
-                                    onClick={() => setSelectedDate(new Date())}
-                                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                                        isToday(selectedDate)
-                                            ? 'bg-blue-600 text-white'
-                                            : 'text-zinc-300 hover:bg-zinc-800'
-                                    }`}
-                                >
-                                    {isToday(selectedDate) ? 'Today' : format(selectedDate, 'MMM d')}
-                                </button>
-                                <button
-                                    onClick={() => navigateDate('next')}
-                                    disabled={isToday(selectedDate)}
-                                    className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                >
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
+                                <button onClick={() => navigateDate('next')} disabled={isToday(selectedDate)} className="p-2.5 rounded-xl hover:bg-card text-muted-foreground/40 hover:text-foreground transition-all disabled:opacity-30 disabled:grayscale active:scale-90"><ChevronRight className="w-4 h-4" /></button>
                             </div>
                         )}
                     </div>
                 )}
 
-                {/* Category filter: Doing, Blocked by others, Blocking others, No Activity, Pending */}
-                <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500 mr-1">Filter:</span>
-                    {(['doing', 'blockedByOthers', 'blockingOthers', 'notStarted', 'other'] as const).map((key) => {
-                        const labelMap: Record<CategoryFilterKey, string> = {
-                            doing: 'Doing',
-                            blockedByOthers: 'Blocked',
-                            blockingOthers: 'Blocking',
-                            notStarted: 'No Activity',
-                            other: 'Pending',
-                        };
-                        const label = labelMap[key];
-                        const active = categoryFilter[key];
-                        return (
-                            <button
-                                key={key}
-                                onClick={() => setCategoryFilter((prev) => ({ ...prev, [key]: !prev[key] }))}
-                                className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors ${
-                                    active
-                                        ? key === 'doing'
-                                            ? 'bg-blue-600/80 text-white'
-                                            : key === 'blockedByOthers'
-                                                ? 'bg-red-600/80 text-white'
-                                                : key === 'blockingOthers'
-                                                    ? 'bg-amber-600/80 text-white'
-                                                    : key === 'notStarted'
-                                                        ? 'bg-orange-600/80 text-white'
-                                                        : 'bg-zinc-600 text-zinc-100'
-                                        : 'bg-zinc-800/80 text-zinc-500 hover:text-zinc-300'
-                                }`}
-                            >
-                                {label}
-                            </button>
-                        );
-                    })}
-                </div>
+                {/* Performance Filter & Stats Summary Container */}
+                <div className="flex items-center gap-6 flex-wrap">
+                    <div className="flex items-center gap-2 bg-secondary/40 p-1 rounded-2xl border border-border/50 shrink-0">
+                        {(['doing', 'blockedByOthers', 'blockingOthers', 'notStarted', 'other'] as const).map((key) => {
+                            const labelMap = { doing: 'Active', blockedByOthers: 'Impeded', blockingOthers: 'Blocking', notStarted: 'Stale', other: 'Queued' };
+                            const colors = { 
+                                doing: 'bg-blue-100/80 text-blue-700 border-blue-200 shadow-sm dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-800', 
+                                blockedByOthers: 'bg-rose-100/80 text-rose-700 border-rose-200 shadow-sm dark:bg-rose-900/50 dark:text-rose-300 dark:border-rose-800', 
+                                blockingOthers: 'bg-amber-100/80 text-amber-700 border-amber-200 shadow-sm dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-800', 
+                                notStarted: 'bg-orange-100/80 text-orange-700 border-orange-200 shadow-sm dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-800', 
+                                other: 'bg-secondary border-border text-foreground/60 shadow-sm' 
+                            };
+                            return (
+                                <button
+                                    key={key}
+                                    onClick={() => setCategoryFilter((prev) => ({ ...prev, [key]: !prev[key] }))}
+                                    className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-[0.98] border ${
+                                        categoryFilter[key] ? colors[key] : 'border-transparent text-muted-foreground/40 hover:text-foreground/60'
+                                    }`}
+                                >
+                                    {labelMap[key]}
+                                </button>
+                            );
+                        })}
+                    </div>
 
-                {/* Quick Stats */}
-                <div className="flex items-center gap-3 text-[10px]">
-                    {categoryFilter.doing && (
-                        <div className="flex items-center gap-1 text-blue-400">
-                            <PlayCircle className="w-3 h-3" />
-                            <span className="font-mono">{stats.totalDoing}</span>
-                        </div>
-                    )}
-                    {categoryFilter.blockingOthers && (
-                        <div className="flex items-center gap-1 text-amber-400">
-                            <Hand className="w-3 h-3" />
-                            <span className="font-mono">{stats.totalBlocking}</span>
-                        </div>
-                    )}
-                    {categoryFilter.blockedByOthers && (
-                        <div className="flex items-center gap-1 text-red-400">
-                            <UserX className="w-3 h-3" />
-                            <span className="font-mono">{stats.totalBlocked}</span>
-                        </div>
-                    )}
-                    {categoryFilter.notStarted && (
-                        <div className="flex items-center gap-1 text-orange-400">
-                            <AlertTriangle className="w-3 h-3" />
-                            <span className="font-mono">{stats.totalNotStarted}</span>
-                        </div>
-                    )}
-                    {categoryFilter.other && (
-                        <div className="flex items-center gap-1 text-zinc-400">
-                            <Clock className="w-3 h-3" />
-                            <span className="font-mono">{stats.totalOther}</span>
-                        </div>
-                    )}
-                    <button
-                        onClick={() => setRolesModalOpen(true)}
-                        className="flex items-center gap-1 px-2 py-1.5 rounded border border-zinc-700 hover:bg-zinc-800 text-zinc-300 transition-colors ml-2"
-                        title="Configure Member Roles"
-                    >
-                        <Settings className="w-3 h-3" />
-                        Roles
-                    </button>
-                    <button
-                        onClick={() => setWebhooksModalOpen(true)}
-                        className="flex items-center gap-1 px-2 py-1.5 rounded border border-zinc-700 hover:bg-zinc-800 text-zinc-300 transition-colors ml-1"
-                        title="Configure Lark Webhooks"
-                    >
-                        <Send className="w-3 h-3" />
-                        Webhooks
-                    </button>
+                    <div className="flex items-center gap-4 bg-card border border-border/80 px-5 py-3 rounded-2xl shadow-sm italic text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground/40 leading-none">
+                        Configuration:
+                        <button onClick={() => setRolesModalOpen(true)} className="flex items-center gap-2 hover:text-indigo-600 transition-colors">
+                            <Settings className="w-3.5 h-3.5" />
+                            Roles
+                        </button>
+                        <div className="w-px h-3 bg-border/50" />
+                        <button onClick={() => setWebhooksModalOpen(true)} className="flex items-center gap-2 hover:text-indigo-600 transition-colors">
+                            <Send className="w-3.5 h-3.5" />
+                            Registry
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* Priority Legend (collapsed) */}
-            <div className="flex items-center gap-4 text-[9px] text-zinc-600">
-                <span className="font-semibold uppercase tracking-wider">Priority:</span>
-                <div className="flex items-center gap-1">
-                    <PlayCircle className="w-2.5 h-2.5 text-blue-500" />
-                    <span>Doing</span>
-                </div>
-                <ArrowRight className="w-2.5 h-2.5" />
-                <div className="flex items-center gap-1">
-                    <Hand className="w-2.5 h-2.5 text-amber-500" />
-                    <span>Blocking</span>
-                </div>
-                <ArrowRight className="w-2.5 h-2.5" />
-                <div className="flex items-center gap-1">
-                    <UserX className="w-2.5 h-2.5 text-red-500" />
-                    <span>Blocked</span>
-                </div>
-                <ArrowRight className="w-2.5 h-2.5" />
-                <div className="flex items-center gap-1">
-                    <AlertTriangle className="w-2.5 h-2.5 text-orange-500" />
-                    <span>No Activity</span>
-                </div>
-                <ArrowRight className="w-2.5 h-2.5" />
-                <div className="flex items-center gap-1">
-                    <Clock className="w-2.5 h-2.5 text-zinc-500" />
-                    <span>Pending</span>
-                </div>
-            </div>
-
-            {/* Main Content */}
+            {/* Main Content Area */}
+            <div className="min-h-[60vh]">
             {personData.length === 0 ? (
-                <div className="text-center py-12 text-zinc-500">
-                    <AlertTriangle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No active tasks found for the current sprint</p>
+                <div className="text-center py-20 bg-secondary/10 rounded-[3rem] border border-dashed border-border/50">
+                    <div className="w-20 h-20 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-8">
+                        <AlertTriangle className="w-10 h-10 text-muted-foreground/20" />
+                    </div>
+                    <h3 className="text-muted-foreground/40 font-black uppercase tracking-[0.2em] text-sm mb-4">Initial State: No Records Available</h3>
+                    <p className="text-xs font-bold text-muted-foreground/30 italic">Synchronize the dataset to initialize the meeting diagnostics protocol.</p>
                 </div>
             ) : filteredPersonData.length === 0 ? (
-                <div className="text-center py-12 text-zinc-500">
-                    <AlertTriangle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No one has tasks in the selected categories. Turn on more filters.</p>
+                <div className="text-center py-20 bg-secondary/10 rounded-[3rem] border border-dashed border-border/50">
+                    <div className="w-20 h-20 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-8">
+                        <AlertTriangle className="w-10 h-10 text-muted-foreground/20" />
+                    </div>
+                    <h3 className="text-muted-foreground/40 font-black uppercase tracking-[0.2em] text-sm mb-4">No Data in Filter Scope</h3>
+                    <p className="text-xs font-bold text-muted-foreground/30 italic">Broaden the telemetry filters to visualize current operations.</p>
                 </div>
             ) : viewMode === 'all' ? (
-                <AllPersonsView
-                    personData={filteredPersonData}
-                    categoryFilter={categoryFilter}
-                    highRiskIds={highRiskIds}
-                    onTaskClick={onTaskClick}
-                    meetingNotes={meetingNotes}
-                />
+                <AllPersonsView personData={filteredPersonData} categoryFilter={categoryFilter} highRiskIds={highRiskIds} onTaskClick={onTaskClick} meetingNotes={meetingNotes} />
             ) : viewMode === 'squads' ? (
-                <SquadsView
-                    analyses={analyses}
-                    categoryFilter={categoryFilter}
-                    highRiskIds={highRiskIds}
-                    onTaskClick={onTaskClick}
-                    meetingNotes={meetingNotes}
-                    dailyTodos={dailyTodos}
-                    selectedDate={selectedDate}
-                    allPersonData={personData}
-                    roles={roles}
-                    activeSprint={activeSprint}
-                />
+                <SquadsView analyses={analyses} categoryFilter={categoryFilter} highRiskIds={highRiskIds} onTaskClick={onTaskClick} meetingNotes={meetingNotes} dailyTodos={dailyTodos} selectedDate={selectedDate} allPersonData={personData} roles={roles} activeSprint={activeSprint} />
             ) : showCompare && currentPersonData ? (
-                <CompareView
-                    personData={currentPersonData}
-                    analyses={analyses}
-                    highRiskIds={highRiskIds}
-                    onTaskClick={onTaskClick}
-                    dailyTodos={dailyTodos}
-                    rawLogs={rawLogs}
-                />
+                <CompareView personData={currentPersonData} analyses={analyses} highRiskIds={highRiskIds} onTaskClick={onTaskClick} dailyTodos={dailyTodos} rawLogs={rawLogs} />
             ) : showHistory && currentPersonData ? (
-                <HistoricalView
-                    personData={currentPersonData}
-                    analyses={analyses}
-                    highRiskIds={highRiskIds}
-                    onTaskClick={onTaskClick}
-                    dailyTodos={dailyTodos}
-                />
+                <HistoricalView personData={currentPersonData} analyses={analyses} highRiskIds={highRiskIds} onTaskClick={onTaskClick} dailyTodos={dailyTodos} />
             ) : currentPersonData ? (
-                <PersonSingleView
-                    personData={currentPersonData}
-                    categoryFilter={categoryFilter}
-                    analyses={analyses}
-                    highRiskIds={highRiskIds}
-                    onTaskClick={onTaskClick}
-                    selectedDate={selectedDate}
-                    dailyTodos={dailyTodos}
-                    rawLogs={rawLogs}
-                    sprintStartSnapshot={sprintStartSnapshot}
-                    allPersonData={personData}
-                    meetingNotes={meetingNotes}
-                    activeSprint={activeSprint}
-                />
+                <PersonSingleView personData={currentPersonData} categoryFilter={categoryFilter} analyses={analyses} highRiskIds={highRiskIds} onTaskClick={onTaskClick} selectedDate={selectedDate} dailyTodos={dailyTodos} rawLogs={rawLogs} sprintStartSnapshot={sprintStartSnapshot} allPersonData={personData} meetingNotes={meetingNotes} activeSprint={activeSprint} />
             ) : null}
+            </div>
 
             {/* Member Roles Settings Modal */}
             {rolesModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-                    <div className="w-full max-w-md bg-zinc-950 border border-zinc-800 rounded-xl p-5 shadow-2xl">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold text-zinc-100 flex items-center gap-2">
-                                <Users className="w-5 h-5 text-indigo-400" />
-                                Member Roles Settings
-                            </h3>
-                            <button onClick={() => setRolesModalOpen(false)} className="text-zinc-500 hover:text-zinc-200">
-                                Close
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-6 animate-in fade-in duration-300">
+                    <div className="w-full max-w-xl bg-card border border-border rounded-[2.5rem] shadow-2xl flex flex-col max-h-[85vh] overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="flex justify-between items-center p-8 border-b border-border/50 bg-secondary/20">
+                            <div className="flex items-center gap-4">
+                                <div className="p-2.5 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-600/20">
+                                    <Users className="w-5 h-5 text-white" />
+                                </div>
+                                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">Hierarchy Configuration</h3>
+                            </div>
+                            <button onClick={() => setRolesModalOpen(false)} className="p-2 hover:bg-secondary rounded-xl text-muted-foreground/40 hover:text-foreground transition-all active:scale-95">
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <p className="text-xs text-zinc-400 mb-4">
-                            Assign roles to members. This affects sorting in squad views and priority grouping in blocked-by dropdowns.
-                        </p>
-                        <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
-                            {personData.map(p => (
-                                <div key={p.person} className="flex items-center justify-between bg-zinc-900/50 p-2.5 rounded-lg border border-zinc-800/80">
-                                    <span className="text-sm font-medium text-zinc-200">{p.person}</span>
-                                    <select
-                                        value={roles[p.person] || ''}
-                                        onChange={(e) => updateRole(p.person, e.target.value)}
-                                        className="bg-zinc-950 border border-zinc-700 rounded-md px-2 py-1.5 text-xs text-zinc-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                    >
-                                        <option value="">No Role</option>
-                                        {ROLE_ORDER.filter(r => r !== 'Other').map(role => (
-                                            <option key={role} value={role}>{role}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            ))}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-4">
+                            <div className="p-4 bg-indigo-50/50 dark:bg-indigo-950/10 border border-indigo-100/50 dark:border-indigo-900/30 rounded-2xl mb-4">
+                                <p className="text-[10px] font-bold text-indigo-600/70 italic leading-relaxed">
+                                    Define the operational status of personnel. Roles prioritize synchronization hierarchy in the Squad Core and telemetry sorting.
+                                </p>
+                            </div>
+                            <div className="grid gap-3">
+                                {personData.map(p => (
+                                    <div key={p.person} className="flex items-center justify-between bg-secondary/30 p-4 rounded-2xl border border-border/50 hover:border-indigo-500/30 transition-all group">
+                                        <span className="text-xs font-black uppercase tracking-tight text-foreground/70">{p.person}</span>
+                                        <select
+                                            value={roles[p.person] || ''}
+                                            onChange={(e) => updateRole(p.person, e.target.value)}
+                                            className="bg-card border border-border rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-foreground/80 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 appearance-none cursor-pointer transition-all shadow-sm"
+                                        >
+                                            <option value="">Status: Unassigned</option>
+                                            {ROLE_ORDER.filter(r => r !== 'Other').map(role => (
+                                                <option key={role} value={role}>{role}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="p-8 border-t border-border/50 flex justify-end bg-secondary/20">
+                            <button onClick={() => setRolesModalOpen(false)} className="px-10 py-3 bg-foreground text-background text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all shadow-xl shadow-foreground/10 active:scale-95">Commit Hierarchy</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            <WebhookSettingsModal
-                isOpen={webhooksModalOpen}
-                onClose={() => setWebhooksModalOpen(false)}
-                persons={personData.map(p => p.person)}
-                initialPerson={selectedPerson}
-            />
+            <WebhookSettingsModal isOpen={webhooksModalOpen} onClose={() => setWebhooksModalOpen(false)} persons={personData.map(p => p.person)} initialPerson={selectedPerson} />
         </div>
     );
 }

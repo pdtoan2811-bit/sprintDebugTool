@@ -12,11 +12,9 @@ import { SprintStartManager } from '@/components/dashboard/SprintStartManager';
 import { DailyMeetingView } from '@/components/dashboard/DailyMeetingView';
 import { DailyRecapView } from '@/components/dashboard/DailyRecapView';
 import { NextSprintPlanningView } from '@/components/dashboard/NextSprintPlanningView';
-import { WorkflowLegend } from '@/components/dashboard/WorkflowLegend';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useHighRisk } from '@/lib/hooks/useHighRisk';
-import { useInterrogationLog } from '@/lib/hooks/useInterrogationLog';
 import { useMeetingNotes } from '@/lib/hooks/useMeetingNotes';
 import { useSprintStart } from '@/lib/hooks/useSprintStart';
 import { format } from 'date-fns';
@@ -57,8 +55,6 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [showWebhookSettings, setShowWebhookSettings] = useState(false);
 
-  const { map: webhookMap, setWebhookForPerson } = usePersonWebhooks();
-
   const activeSprint = getActiveSprintNumber();
 
   function getSprintLabel(sprintNum: string): string {
@@ -68,7 +64,6 @@ export default function Home() {
   }
 
   const { highRiskIds, toggleHighRisk, isHighRisk } = useHighRisk();
-  // useInterrogationLog removed
   const { addNote, updateNote, deleteNote, getNotesForTask, notes } = useMeetingNotes();
   const {
     getSprintStartSnapshot,
@@ -88,7 +83,7 @@ export default function Home() {
     async function loadData() {
       setLoading(true);
       try {
-        const logs = await fetchLogs(); // Fetch all logs to prevent backend date-range truncation
+        const logs = await fetchLogs();
         if (!ignore) {
           setRawLogs(logs);
           const segments = transformLogsToSegments(logs);
@@ -123,6 +118,7 @@ export default function Home() {
     }
     return filtered;
   }, [rawLogs, notes, activeSprint]);
+  
   const personSummaries = useMemo(() => getPersonSummaries(rawLogs, analyses), [rawLogs, analyses]);
   const allPersons = useMemo(
     () => Array.from(new Set(data.map((d) => d.person))).sort(),
@@ -144,11 +140,9 @@ export default function Home() {
 
   // ── Task Click from overview views ─────────────────────────────
   const handleTaskClick = (taskId: string) => {
-    // Find a segment for this task to open the inspector
     for (const lane of data) {
       for (const seg of lane.segments) {
         if (seg.taskId === taskId) {
-          // Prefer the latest/active segment
           const latestSeg = lane.segments
             .filter((s) => s.taskId === taskId)
             .sort((a, b) => b.startTime.getTime() - a.startTime.getTime())[0];
@@ -160,126 +154,133 @@ export default function Home() {
   };
 
   const currentAnalysis = selectedSegment ? analyses[selectedSegment.taskId] ?? null : null;
-  // currentLogs removed
   const currentMeetingNotes = selectedSegment ? getNotesForTask(selectedSegment.taskId) : [];
 
   // ── Tab definitions ────────────────────────────────────────────
   const tabs: { key: ViewTab; label: string; icon: React.ReactNode; desc: string }[] = [
-    { key: 'dailyMeeting', label: 'Daily Meeting', icon: <UsersRound className="w-4 h-4" />, desc: 'Prioritized view for daily standups: Doing → Blocking → Blocked → Not Started' },
-    { key: 'nextSprintPlanning', label: 'Next Sprint Planning', icon: <Target className="w-4 h-4" />, desc: 'Draft and bulk sync tasks to the next sprint' },
-    { key: 'dailyRecap', label: 'Daily Recap', icon: <History className="w-4 h-4" />, desc: 'Retrospective view: task movements per person for a selected day (default: yesterday)' },
+    { key: 'dailyMeeting', label: 'Daily Meeting', icon: <UsersRound className="w-4 h-4" />, desc: 'Standup-ready view: Doing → Blocking → Blocked → Not Started' },
+    { key: 'nextSprintPlanning', label: 'Squad Planner', icon: <Target className="w-4 h-4" />, desc: 'Draft and bulk sync tasks to the next sprint' },
+    { key: 'dailyRecap', label: 'Daily Recap', icon: <History className="w-4 h-4" />, desc: 'Retrospective view of task movements per person' },
     { key: 'personnel', label: 'Personnel', icon: <LayoutGrid className="w-4 h-4" />, desc: 'Standup-ready view grouped by person' },
     { key: 'tasks', label: 'Tasks', icon: <ListChecks className="w-4 h-4" />, desc: 'Sortable task table with risk analysis' },
-    { key: 'sprintStart', label: 'Sprint Start', icon: <Flag className="w-4 h-4" />, desc: 'Auto-detected starting status snapshot with override support' },
-    { key: 'sandbox', label: 'Sandbox', icon: <Code className="w-4 h-4" />, desc: 'Test sprint movement and Lark integrations in isolation' },
+    { key: 'sprintStart', label: 'Sprint Start', icon: <Flag className="w-4 h-4" />, desc: 'Auto-detected starting status snapshot' },
+    { key: 'sandbox', label: 'Sandbox', icon: <Code className="w-4 h-4" />, desc: 'Test integrations in isolation' },
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 sm:p-8 font-sans grid grid-rows-[auto_auto_1fr_auto] gap-6">
+    <div className="min-h-screen bg-background text-foreground p-3 sm:p-6 font-sans grid grid-rows-[auto_auto_1fr_auto] gap-4 transition-all duration-300">
 
       {/* ── Header ─────────────────────────────────────────── */}
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-900 pb-6">
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col">
-            <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-              <Activity className="w-8 h-8 text-blue-500" />
-              Sprint Relay Debugger
-              <Link
-                href="/sandbox"
-                className="ml-4 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-black rounded-full shadow-lg shadow-indigo-600/30 transition-all active:scale-95 border border-indigo-400/30 flex items-center gap-1.5"
-              >
-                <Code className="w-3 h-3" />
-                SANDBOX TEST
-              </Link>
-            </h1>
-            <p className="text-zinc-500 text-sm max-w-xl">
-              Workflow-aware diagnostics &mdash; bottleneck detection, doom loop tracking, and PM decision support.
-            </p>
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-border pb-6">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-indigo-600 rounded-xl shadow-xl shadow-indigo-600/20 transform hover:scale-110 transition-transform">
+              <Activity className="w-8 h-8 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <h1 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-3">
+                Sprint Relay Debugger
+                <span className="text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded-md font-black shadow-lg shadow-indigo-500/20">V2.1.1-SYNCED</span>
+                <div className="h-6 w-px bg-border mx-1" />
+                <Link
+                  href="/sandbox"
+                  className="px-4 py-1.5 bg-secondary hover:bg-muted text-muted-foreground text-[10px] font-black rounded-full shadow-sm transition-all border border-border flex items-center gap-2 group"
+                >
+                  <Code className="w-3 h-3 group-hover:text-indigo-600 transition-colors" />
+                  SANDBOX
+                </Link>
+              </h1>
+              <p className="text-muted-foreground text-sm font-medium opacity-60">
+                Advanced workflow diagnostics &mdash; bottleneck detection, doom loop tracking, and PM decision support.
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
-          <select
-            value={manualOverride || 'auto'}
-            onChange={(e) => saveManualOverride(e.target.value === 'auto' ? null : e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 text-zinc-300 text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-[200px] truncate"
-          >
-            <option value="auto">🌟 Auto-detect Current Sprint</option>
-            {configs.map((s) => (
-              <option key={s.number} value={s.number}>
-                {getSprintLabel(s.number)}
-              </option>
-            ))}
-          </select>
-          {activeSprint && (
-            <Badge variant="outline" className="px-3 py-1.5 flex items-center gap-1.5 bg-blue-950/30 border-blue-800/50">
-              <Calendar className="w-3 h-3 text-blue-400" />
-              <span className="font-mono text-blue-300 text-xs">{getSprintLabel(activeSprint)}</span>
-            </Badge>
-          )}
-          <Badge variant="outline" className="px-3 py-1.5 flex items-center gap-1.5 bg-zinc-950">
-            <Database className="w-3 h-3 text-emerald-400" />
-            <span className="font-mono">Live Logs</span>
+        <div className="flex items-center gap-2 flex-wrap bg-secondary/30 p-1.5 rounded-xl border border-border/50">
+          <div className="relative">
+            <select
+              value={manualOverride || 'auto'}
+              onChange={(e) => saveManualOverride(e.target.value === 'auto' ? null : e.target.value)}
+              className="bg-card border border-border text-foreground text-xs font-black uppercase tracking-widest rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none pr-10 shadow-sm"
+            >
+              <option value="auto">🌟 Auto-detect Current</option>
+              {configs.map((s) => (
+                <option key={s.number} value={s.number}>
+                  Sprint {s.number}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <Badge variant="outline" className="px-4 py-2.5 flex items-center gap-2 bg-indigo-50 border-indigo-100 text-indigo-700 dark:bg-indigo-950/30 dark:border-indigo-800/50 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm">
+            <Calendar className="w-3.5 h-3.5" />
+            {activeSprint ? getSprintLabel(activeSprint).split('·')[1] : 'Loading...'}
           </Badge>
+
           <button
             type="button"
             onClick={() => setShowWebhookSettings(true)}
-            className="px-3 py-1.5 flex items-center gap-1.5 bg-zinc-950 border border-zinc-800 rounded-md text-zinc-200 hover:bg-zinc-900 transition-colors"
+            className="px-4 py-2.5 flex items-center gap-2 bg-card border border-border rounded-xl text-foreground hover:bg-secondary font-black text-[10px] uppercase tracking-widest transition-all shadow-sm active:scale-95"
             title="Configure per-person webhook URLs"
           >
-            <Users className="w-3 h-3 text-purple-400" />
-            <span className="font-mono">{data.length} Members</span>
+            <Users className="w-3.5 h-3.5 text-indigo-600" />
+            {data.length} Members
           </button>
+
+          <div className="h-4 w-px bg-border mx-1" />
+          
           <DataManagementModal />
+          
           <button
             onClick={() => setShowSettings(true)}
-            className="p-1.5 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 rounded-md transition-colors"
+            className="p-2.5 text-muted-foreground hover:text-foreground hover:bg-card rounded-xl border border-transparent hover:border-border transition-all active:scale-90"
             title="Sprint Settings"
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-5 h-5" />
           </button>
         </div>
       </header>
 
       {/* ── Stats Bar ──────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
-        <div className="px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl flex flex-col">
-          <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold">Total Tasks</span>
-          <span className="text-2xl font-bold font-mono text-zinc-100 mt-1">{stats.total}</span>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="px-4 py-3 bg-card border border-border rounded-xl flex flex-col shadow-sm hover:shadow-md transition-shadow group">
+          <span className="text-muted-foreground text-[9px] uppercase tracking-widest font-black opacity-50 group-hover:opacity-100 transition-opacity">Total Tasks</span>
+          <span className="text-3xl font-black font-mono text-foreground mt-2">{stats.total}</span>
         </div>
-        <div className={`px-4 py-3 rounded-xl flex flex-col border ${stats.metGoal > 0 ? 'bg-emerald-950/20 border-emerald-800/50' : 'bg-zinc-950 border-zinc-800'}`}>
-          <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1">
+        <div className={`px-4 py-3 rounded-xl flex flex-col border shadow-sm transition-all hover:shadow-md ${stats.metGoal > 0 ? 'bg-emerald-50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/50' : 'bg-card border-border'}`}>
+          <span className="text-muted-foreground text-[9px] uppercase tracking-widest font-black flex items-center gap-1.5">
             <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Met Goal
           </span>
-          <span className={`text-2xl font-bold font-mono mt-1 ${stats.metGoal > 0 ? 'text-emerald-300' : 'text-zinc-100'}`}>
+          <span className={`text-2xl font-black font-mono mt-1 ${stats.metGoal > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}>
             {stats.metGoal}
           </span>
         </div>
-        <div className={`px-4 py-3 rounded-xl flex flex-col border ${stats.bottlenecked > 0 ? 'bg-amber-950/20 border-amber-800/50' : 'bg-zinc-950 border-zinc-800'}`}>
-          <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1">
-            <AlertTriangle className="w-3 h-3 text-amber-500" /> Bottlenecked
+        <div className={`px-4 py-3 rounded-xl flex flex-col border shadow-sm transition-all hover:shadow-md ${stats.bottlenecked > 0 ? 'bg-amber-50 border-amber-100 dark:bg-amber-950/20 dark:border-amber-900/50' : 'bg-card border-border'}`}>
+          <span className="text-muted-foreground text-[9px] uppercase tracking-widest font-black flex items-center gap-1.5">
+            <AlertTriangle className="w-3 h-3 text-amber-500 shadow-amber-500/20" /> Bottleneck
           </span>
-          <span className={`text-2xl font-bold font-mono mt-1 ${stats.bottlenecked > 0 ? 'text-amber-300' : 'text-zinc-100'}`}>
+          <span className={`text-2xl font-black font-mono mt-1 ${stats.bottlenecked > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
             {stats.bottlenecked}
           </span>
         </div>
-        <div className={`px-4 py-3 rounded-xl flex flex-col border ${stats.doomLoops > 0 ? 'bg-red-950/20 border-red-800/50' : 'bg-zinc-950 border-zinc-800'}`}>
-          <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1">
-            <RefreshCw className="w-3 h-3 text-red-500" /> Doom Loops
+        <div className={`px-4 py-3 rounded-xl flex flex-col border shadow-sm transition-all hover:shadow-md ${stats.doomLoops > 0 ? 'bg-rose-50 border-rose-100 dark:bg-rose-950/20 dark:border-rose-900/50' : 'bg-card border-border'}`}>
+          <span className="text-muted-foreground text-[9px] uppercase tracking-widest font-black flex items-center gap-1.5">
+            <RefreshCw className="w-3 h-3 text-rose-500 animate-spin" style={{ animationDuration: '4s' }} /> Doom Loops
           </span>
-          <span className={`text-2xl font-bold font-mono mt-1 ${stats.doomLoops > 0 ? 'text-red-300' : 'text-zinc-100'}`}>
+          <span className={`text-2xl font-black font-mono mt-1 ${stats.doomLoops > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-foreground'}`}>
             {stats.doomLoops}
           </span>
         </div>
-        <div className={`px-4 py-3 rounded-xl flex flex-col border ${stats.stale > 0 ? 'bg-amber-950/10 border-amber-800/30' : 'bg-zinc-950 border-zinc-800'}`}>
-          <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold">Stale (24h+)</span>
-          <span className={`text-2xl font-bold font-mono mt-1 ${stats.stale > 0 ? 'text-amber-200' : 'text-zinc-100'}`}>
+        <div className={`px-4 py-3 rounded-xl flex flex-col border shadow-sm transition-all hover:shadow-md ${stats.stale > 0 ? 'bg-amber-50 border-amber-50 dark:bg-amber-950/10 dark:border-amber-900/20' : 'bg-card border-border'}`}>
+          <span className="text-muted-foreground text-[9px] uppercase tracking-widest font-black">Stale (24h+)</span>
+          <span className={`text-2xl font-black font-mono mt-1 ${stats.stale > 0 ? 'text-amber-700 dark:text-amber-200' : 'text-foreground'}`}>
             {stats.stale}
           </span>
         </div>
-        <div className={`px-4 py-3 rounded-xl flex flex-col border ${stats.highRisk > 0 ? 'bg-red-950/15 border-red-800/30' : 'bg-zinc-950 border-zinc-800'}`}>
-          <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold">📌 High Risk</span>
-          <span className={`text-2xl font-bold font-mono mt-1 ${stats.highRisk > 0 ? 'text-red-300' : 'text-zinc-100'}`}>
+        <div className={`px-4 py-3 rounded-xl flex flex-col border shadow-sm transition-all hover:shadow-md ${stats.highRisk > 0 ? 'bg-indigo-50 border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900/30' : 'bg-card border-border'}`}>
+          <span className="text-muted-foreground text-[9px] uppercase tracking-widest font-black">📌 High Risk</span>
+          <span className={`text-2xl font-black font-mono mt-1 ${stats.highRisk > 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-foreground'}`}>
             {stats.highRisk}
           </span>
         </div>
@@ -287,41 +288,51 @@ export default function Home() {
 
       {/* ── Main Content ───────────────────────────────────── */}
       <main className="w-full h-full flex flex-col gap-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="w-full">
 
           {/* Main Panel */}
-          <Card className="lg:col-span-3 border-zinc-800/50 bg-black/40 backdrop-blur-xl">
-            <CardHeader className="pb-3">
+          <Card className="w-full border-border bg-card/40 backdrop-blur-3xl shadow-2xl relative overflow-hidden group/main-card">
+            {/* Subtle light effect */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+            
+            <CardHeader className="p-0 border-b border-border/50">
               {/* Tab Navigation */}
-              <div className="flex items-center gap-1 border-b border-zinc-800/50 -mx-6 px-6 pb-3 mb-2">
+              <div className="flex items-center gap-1 px-3 py-1.5 overflow-x-auto custom-scrollbar-horizontal bg-secondary/20">
                 {tabs.map((tab) => (
                   <button
                     key={tab.key}
                     onClick={() => setActiveTab(tab.key)}
-                    className={`relative flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium transition-all ${activeTab === tab.key
-                      ? 'text-zinc-100 bg-zinc-800/50'
-                      : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/30'
+                    className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest font-black transition-all ${activeTab === tab.key
+                      ? 'text-indigo-600 bg-background shadow-sm border border-border/40'
+                      : 'text-muted-foreground/60 hover:text-foreground hover:bg-background/40'
                       }`}
                   >
-                    {tab.icon}
+                    <div className={activeTab === tab.key ? 'text-indigo-600' : 'text-muted-foreground/40'}>
+                      {tab.icon}
+                    </div>
                     <span>{tab.label}</span>
                     {activeTab === tab.key && (
-                      <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-blue-500 rounded-full tab-active-indicator" />
+                      <div className="absolute inset-x-4 -bottom-px h-0.5 bg-indigo-600 rounded-full" />
                     )}
                   </button>
                 ))}
               </div>
-              <CardDescription className="text-xs">
-                {tabs.find((t) => t.key === activeTab)?.desc}
-              </CardDescription>
+              <div className="px-6 py-2 bg-indigo-50/30 dark:bg-indigo-950/10 border-b border-border/30">
+                <CardDescription className="text-[10px] font-black uppercase tracking-[0.1em] text-indigo-600 dark:text-indigo-400 opacity-70">
+                  {tabs.find((t) => t.key === activeTab)?.desc}
+                </CardDescription>
+              </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               {loading ? (
-                <div className="w-full h-[400px] flex items-center justify-center border border-zinc-800 rounded-xl bg-zinc-950/50 animate-pulse">
-                  <p className="font-mono text-zinc-500 text-sm">Loading Sprint Telemetry...</p>
+                <div className="w-full h-[500px] flex flex-col items-center justify-center border border-dashed border-border rounded-3xl bg-secondary/10 animate-pulse gap-4">
+                  <div className="p-4 bg-muted rounded-2xl shadow-inner">
+                    <Activity className="w-10 h-10 text-muted-foreground opacity-20 animate-spin" style={{ animationDuration: '3s' }} />
+                  </div>
+                  <p className="font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/40">Synchronizing Telemetry...</p>
                 </div>
               ) : (
-                <>
+                <div className="animate-in fade-in duration-700">
                   {activeTab === 'dailyMeeting' && (() => {
                     const snapshot = getSprintStartSnapshot(activeSprint || '', rawLogs);
                     const snapshotMap: Record<string, string> = {};
@@ -369,59 +380,45 @@ export default function Home() {
                       onTaskClick={handleTaskClick}
                     />
                   )}
-                    {activeTab === 'sprintStart' && (
-                      <SprintStartManager
-                        rawLogs={rawLogs}
-                        selectedSprint={activeSprint || ''}
-                        getSprintStartSnapshot={getSprintStartSnapshot}
-                        onSaveOverride={saveOverride}
-                        onBulkSaveOverrides={bulkSaveOverrides}
-                        onClearOverride={clearOverride}
-                        onClearAllOverrides={clearAllOverrides}
-                        onConfirmAll={confirmAllAsOverrides}
-                      />
-                    )}
-                    {activeTab === 'sandbox' && (() => {
-                      // Inline sandbox logic or just a message. 
-                      // For now, let's just make it a link but prominently.
-                      return (
-                        <div className="flex flex-col items-center justify-center py-20 bg-zinc-950/30 border border-dashed border-zinc-800 rounded-xl">
-                          <Code className="w-12 h-12 mb-4 text-indigo-400 opacity-50" />
-                          <h3 className="text-xl font-bold text-zinc-100 mb-2">Sprint Movement Sandbox</h3>
-                          <p className="text-zinc-500 text-sm mb-6 text-center max-w-md">
-                            The sandbox environment is located on a dedicated page to ensure focused testing without dashboard complexity.
-                          </p>
-                          <Link 
-                            href="/sandbox"
-                            className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/20 active:scale-95 flex items-center gap-2"
-                          >
-                            <Play className="w-4 h-4" />
-                            Launch Sandbox
-                          </Link>
-                        </div>
-                      );
-                    })()}
-                  </>
+                  {activeTab === 'sprintStart' && (
+                    <SprintStartManager
+                      rawLogs={rawLogs}
+                      selectedSprint={activeSprint || ''}
+                      getSprintStartSnapshot={getSprintStartSnapshot}
+                      onSaveOverride={saveOverride}
+                      onBulkSaveOverrides={bulkSaveOverrides}
+                      onClearOverride={clearOverride}
+                      onClearAllOverrides={clearAllOverrides}
+                      onConfirmAll={confirmAllAsOverrides}
+                    />
+                  )}
+                  {activeTab === 'sandbox' && (
+                    <div className="flex flex-col items-center justify-center py-16 bg-indigo-50/20 dark:bg-indigo-950/10 border border-dashed border-indigo-200 dark:border-indigo-900/40 rounded-xl animate-in zoom-in-95 duration-500 shadow-inner">
+                      <div className="p-4 bg-white dark:bg-indigo-900/30 rounded-2xl shadow-xl mb-6 shadow-indigo-100 dark:shadow-indigo-950/40 relative">
+                        <Code className="w-12 h-12 text-indigo-600" />
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-4 border-card animate-bounce shadow-lg shadow-emerald-500/20" />
+                      </div>
+                      <h3 className="text-xl font-black text-foreground mb-2 text-center">Sprint Movement Sandbox</h3>
+                      <p className="text-muted-foreground text-xs font-medium mb-8 text-center max-w-sm opacity-70">
+                        The isolated sandbox environment allows you to test webhook payloads and task movement logic without affecting production telemetry.
+                      </p>
+                      <Link 
+                        href="/sandbox"
+                        className="group relative flex items-center gap-3 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-2xl shadow-indigo-600/30 active:scale-95 border border-indigo-500/30"
+                      >
+                        <Play className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" />
+                        Entry Point Alpha
+                      </Link>
+                    </div>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>
-
-          {/* Sidebar */}
-          <div className="flex flex-col gap-6 h-full">
-            <Card className="flex-1 border-zinc-800/50 bg-black/40 overflow-y-auto max-h-[70vh]">
-              <CardHeader>
-                <CardTitle className="text-sm">Workflow Legend</CardTitle>
-                <CardDescription className="text-xs">Status flow & risk indicators</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <WorkflowLegend />
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </main>
 
-      {/* Webhook Settings Modal */}
+      {/* Modals & Overlays */}
       <WebhookSettingsModal
         isOpen={showWebhookSettings}
         onClose={() => setShowWebhookSettings(false)}
@@ -429,8 +426,15 @@ export default function Home() {
         activeSprint={activeSprint || ''}
       />
 
-      <footer className="w-full text-center text-zinc-600 text-xs font-mono py-4 border-t border-zinc-900 mt-auto">
-        Sprint Relay Engine v2.0.0 &middot; Workflow Anatomy Enabled
+      <footer className="w-full flex items-center justify-between px-2 py-6 border-t border-border mt-8 bg-gradient-to-b from-transparent to-secondary/10">
+        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-30">
+          <Activity className="w-3.5 h-3.5" />
+          Protocal active &middot; relay operational
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-[10px] text-muted-foreground/30 font-mono tracking-widest uppercase">Engine v2.1.0-rev4</span>
+          <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/40 animate-pulse" />
+        </div>
       </footer>
 
       {/* Inspector Side Panel */}
@@ -444,7 +448,7 @@ export default function Home() {
         onAddMeetingNote={addNote}
         onUpdateMeetingNote={updateNote}
         onDeleteMeetingNote={(id) => selectedSegment && deleteNote(selectedSegment.taskId, id)}
-        allPersons={data.map((d) => d.person)}
+        allPersons={allPersons}
       />
 
       {/* Settings Modal */}

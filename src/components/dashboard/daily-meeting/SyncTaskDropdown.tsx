@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TaskAnalysis } from '@/lib/types';
 import { Popover, PopoverContent, PopoverTrigger } from '../../ui/popover';
-import { CheckCircle2, Circle, RefreshCw } from 'lucide-react';
+import { CheckCircle2, Circle, RefreshCw, X } from 'lucide-react';
 import { PersonMeetingData } from './types';
 import { useDailyTodos } from '@/lib/hooks/useDailyTodos';
 
@@ -38,19 +38,25 @@ export function SyncTaskDropdown({
             <PopoverTrigger asChild>
                 <div onClick={(e) => e.stopPropagation()}>
                     <button
-                        className={`p-1.5 rounded-md transition-all ml-1 border shadow-sm ${isOpen ? 'bg-indigo-900/50 text-indigo-400 border-indigo-500/30' : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:text-indigo-300 hover:bg-zinc-800 hover:border-indigo-500/50'}`}
+                        className={`p-1.5 rounded-xl transition-all ml-1 border shadow-sm active:scale-90 ${isOpen ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-600/20' : 'bg-secondary/50 border-border/50 text-muted-foreground/60 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-indigo-900/10 hover:border-indigo-500/30'}`}
                         title="Sync task to others"
                     >
-                        <RefreshCw className="w-3.5 h-3.5" />
+                        <RefreshCw className={`w-3.5 h-3.5 ${isOpen ? 'animate-spin' : ''}`} />
                     </button>
                 </div>
             </PopoverTrigger>
-            <PopoverContent className="w-64 p-3 z-[100]" align="end" onClick={(e) => e.stopPropagation()}>
-                <div className="mb-2">
-                    <h4 className="text-sm font-semibold text-zinc-200">Sync to others</h4>
-                    <p className="text-xs text-zinc-400">Select team members to add this task to their today's plan.</p>
+            <PopoverContent className="w-72 p-0 z-[100] border-border bg-card shadow-2xl rounded-2xl overflow-hidden" align="end" onClick={(e) => e.stopPropagation()}>
+                <div className="p-4 border-b border-border/50 bg-secondary/30">
+                    <div className="flex items-center justify-between mb-1">
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground">Sync Protocol</h4>
+                        <button onClick={() => setIsOpen(false)} className="p-1 rounded-lg hover:bg-secondary text-muted-foreground/40 hover:text-foreground transition-all">
+                            <X className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+                    <p className="text-[10px] font-bold text-muted-foreground/60 leading-relaxed italic">Distribute objective to auxiliary squad members.</p>
                 </div>
-                <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar pr-1 mb-3">
+                
+                <div className="p-2 space-y-1 max-h-60 overflow-y-auto custom-scrollbar">
                     {otherPersons.map(p => {
                         const isSelected = selectedPersons.has(p.person);
                         const alreadyHasIt = dailyTodos.getTodosForPersonDate(p.person, dateStr).some(t => t.taskId === task.taskId);
@@ -65,34 +71,53 @@ export function SyncTaskDropdown({
                                     else next.add(p.person);
                                     setSelectedPersons(next);
                                 }}
-                                className={`w-full flex items-center justify-between px-2 py-1.5 rounded-md text-sm transition-colors ${alreadyHasIt ? 'opacity-50 cursor-not-allowed bg-zinc-900 border border-zinc-800/50' : 'hover:bg-zinc-800'}`}
+                                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition-all border ${
+                                    alreadyHasIt 
+                                        ? 'opacity-40 cursor-not-allowed bg-secondary/50 border-transparent' 
+                                        : isSelected 
+                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-950/30 dark:border-indigo-800' 
+                                            : 'hover:bg-secondary border-transparent'
+                                }`}
                             >
-                                <span className={alreadyHasIt ? 'text-zinc-500' : 'text-zinc-300'}>{p.person}</span>
+                                <div className="flex flex-col items-start">
+                                    <span className={`font-bold transition-colors ${alreadyHasIt ? 'text-muted-foreground' : 'text-foreground'}`}>
+                                        {p.person}
+                                    </span>
+                                    {alreadyHasIt && (
+                                        <span className="text-[8px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-500 mt-0.5">Active Assignment</span>
+                                    )}
+                                </div>
+                                
                                 {alreadyHasIt ? (
-                                    <span className="text-[9px] text-emerald-500 font-medium">Already in plan</span>
+                                    <div className="w-5 h-5 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-500" />
+                                    </div>
                                 ) : isSelected ? (
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400" />
+                                    <div className="w-5 h-5 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/20">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                                    </div>
                                 ) : (
-                                    <Circle className="w-3.5 h-3.5 text-zinc-600" />
+                                    <Circle className="w-5 h-5 text-muted-foreground/20" />
                                 )}
                             </button>
                         );
                     })}
                 </div>
-                <div className="flex justify-end gap-2">
+                
+                <div className="p-3 bg-secondary/20 border-t border-border/50 flex items-center justify-between">
                     <button 
                         onClick={() => setIsOpen(false)}
-                        className="px-2.5 py-1 rounded text-xs text-zinc-400 hover:text-zinc-200"
+                        className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 hover:text-foreground hover:bg-secondary transition-all"
                     >
-                        Cancel
+                        Abort
                     </button>
                     <button 
                         onClick={handleSync}
                         disabled={selectedPersons.size === 0}
-                        className="px-2.5 py-1 rounded text-xs bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 font-medium shadow-sm transition-all"
+                        className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-indigo-600/30 transition-all active:scale-95"
                     >
-                        <RefreshCw className="w-3 h-3" />
-                        Sync ({selectedPersons.size})
+                        <RefreshCw className={`w-3.5 h-3.5 ${selectedPersons.size > 0 ? 'animate-spin-slow' : ''}`} />
+                        Initiate Sync ({selectedPersons.size})
                     </button>
                 </div>
             </PopoverContent>

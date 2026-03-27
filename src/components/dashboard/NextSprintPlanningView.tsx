@@ -29,7 +29,8 @@ import {
 import { Badge } from '../ui/badge';
 
 import { SyncProgress, SyncTaskResult, SyncTaskStatus, VerificationResult } from './next-sprint/types';
-import { ACTIVE_STATUSES, priorityDotColor, statusBadge } from './next-sprint/utils';
+import { priorityDotColor, StatusBadge } from '@/lib/status-utils';
+import { TaskCard } from './TaskCard';
 
 interface NextSprintPlanningViewProps {
     analyses: Record<string, TaskAnalysis>;
@@ -339,66 +340,39 @@ export function NextSprintPlanningView({
     if (isLoading) {
         return (
             <div className="flex items-center justify-center p-12">
-                <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
         );
     }
 
     const renderCard = (task: TaskAnalysis, context: 'backlog') => {
-        const categoryLabel = (() => {
-            if (task.currentStatus === 'Reprocess' || task.currentStatus === 'Reviewing' || task.currentStatus === 'Waiting to Integrate') {
-                return { text: 'In bottleneck', color: 'bg-amber-950/50 text-amber-300', icon: <AlertTriangle className="w-2.5 h-2.5" /> };
-            }
-            if (ACTIVE_STATUSES.has(task.currentStatus)) {
-                return { text: 'Active', color: 'bg-blue-950/50 text-blue-300', icon: <PlayCircle className="w-2.5 h-2.5" /> };
-            }
-            if (task.currentStatus === 'Not Started') {
-                return { text: 'Not started', color: 'bg-zinc-800/50 text-zinc-400', icon: <Circle className="w-2.5 h-2.5" /> };
-            }
-            return undefined;
-        })();
-
         return (
-            <div
-                key={task.taskId}
-                draggable={true}
-                onDragStart={(e) => handleDragStart(e, task.taskId)}
-                className="group w-full text-left rounded-lg lg:rounded-xl border border-zinc-800/50 bg-zinc-900/40 px-3 py-2.5 lg:px-4 lg:py-3 hover:border-zinc-700/70 hover:bg-zinc-800/60 transition-colors shadow-sm cursor-grab active:cursor-grabbing"
-            >
-                <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-2.5 lg:gap-3 min-w-0 flex-1">
-                        <GripVertical className="w-3 h-3 text-zinc-600 mt-1 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1 cursor-pointer" onClick={() => onTaskClick(task.taskId)}>
-                                <span className="font-mono text-[10px] text-zinc-400 shrink-0">{task.taskId}</span>
-                                <span className="text-xs font-semibold text-zinc-200 truncate group-hover:text-white transition-colors">
-                                    {task.taskName}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${priorityDotColor(task.currentStatus)}`} />
-                                {statusBadge(task.currentStatus)}
-                                {categoryLabel && (
-                                    <span className={`text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1 ${categoryLabel.color}`}>
-                                        {categoryLabel.icon}
-                                        {categoryLabel.text}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => addDraft({
-                            taskId: task.taskId,
-                            targetSprint: bulkTargetSprint,
-                            targetStatus: task.currentStatus,
-                            targetSprintGoal: task.sprintGoal || ''
-                        })}
-                        className="opacity-0 group-hover:opacity-100 px-2 py-1.5 rounded bg-indigo-900/40 text-indigo-300 hover:bg-indigo-600 hover:text-white text-[10px] font-semibold transition-all flex items-center border border-indigo-500/30 hover:border-indigo-500 shrink-0"
-                    >
-                        <Plus className="w-3 h-3 mr-1" /> Add
-                    </button>
-                </div>
+            <div key={task.taskId} className="relative group/card">
+                <TaskCard
+                    task={task}
+                    onTaskClick={onTaskClick}
+                    isDraggable={true}
+                    onDragStart={handleDragStart}
+                    showMetadata={true}
+                    actions={
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                addDraft({
+                                    taskId: task.taskId,
+                                    targetSprint: bulkTargetSprint,
+                                    targetStatus: task.currentStatus,
+                                    targetSprintGoal: task.sprintGoal || ''
+                                });
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1D3557] hover:bg-[#1D3557]/90 text-white text-[10px] font-bold transition-all shadow-lg shadow-[#1D3557]/20 active:scale-95 ml-1"
+                            title="Add to draft plan"
+                        >
+                            <Plus className="w-3 h-3" />
+                            Add
+                        </button>
+                    }
+                />
             </div>
         );
     };
@@ -407,11 +381,11 @@ export function NextSprintPlanningView({
         <div className="flex flex-col gap-6 pb-12 min-h-screen">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-xl font-bold flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-indigo-400" />
+                    <h2 className="text-xl font-bold flex items-center gap-2 text-foreground tracking-tight">
+                        <Calendar className="w-5 h-5 text-[#1D3557] dark:text-indigo-400" />
                         Next Sprint Squad Planning
                     </h2>
-                    <p className="text-sm text-zinc-500 mt-1 max-w-2xl">
+                    <p className="text-sm text-muted-foreground mt-1 max-w-2xl font-medium">
                         Form a dynamic squad below. Uncompleted tasks belonging to squad members will appear in the backlog. 
                         Draft them to the Squad Plan, apply bulk updates, and sync to Lark in one click.
                     </p>
@@ -419,10 +393,10 @@ export function NextSprintPlanningView({
             </div>
 
             {/* Personnel Selector Row */}
-            <div className="bg-zinc-950/50 p-4 rounded-xl border border-zinc-800 flex flex-col gap-3 flex-shrink-0 shadow-lg shadow-black/20">
+            <div className="bg-secondary/40 p-4 rounded-xl border border-border flex flex-col gap-3 flex-shrink-0 shadow-sm">
                 <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-indigo-400" />
-                    <span className="font-semibold text-zinc-200 text-sm">Gradually form your squad</span>
+                    <Users className="w-4 h-4 text-[#1D3557] dark:text-indigo-400" />
+                    <span className="font-bold text-foreground text-sm tracking-tight">Gradually form your squad</span>
                 </div>
                 <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
                     {allPersons.map(p => {
@@ -436,14 +410,14 @@ export function NextSprintPlanningView({
                                     else next.add(p);
                                     setSelectedPersonsFilter(next);
                                 }}
-                                className={`flex-shrink-0 flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-all ${
+                                className={`flex-shrink-0 flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-all shadow-sm ${
                                     isSelected 
-                                        ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_12px_rgba(79,70,229,0.3)]'
-                                        : 'bg-zinc-900/80 border-zinc-700/80 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+                                        ? 'bg-[#1D3557] border-indigo-500 text-white shadow-indigo-200 dark:shadow-indigo-900/40'
+                                        : 'bg-card border-border text-muted-foreground hover:bg-background hover:text-foreground hover:border-muted-foreground/30'
                                 }`}
                             >
-                                <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white/80' : 'bg-zinc-600'}`} />
-                                <span className="text-sm font-medium">{p}</span>
+                                <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white/80' : 'bg-muted-foreground/30'}`} />
+                                <span className="text-xs font-bold">{p}</span>
                             </button>
                         );
                     })}
@@ -451,11 +425,11 @@ export function NextSprintPlanningView({
             </div>
 
             {selectedPersonsFilter.size === 0 ? (
-                <div className="flex-1 flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950/50 min-h-[400px]">
+                <div className="flex-1 flex items-center justify-center rounded-xl border border-border bg-card shadow-sm min-h-[400px]">
                     <div className="text-center py-12 px-4 max-w-md">
-                        <Users className="w-12 h-12 mx-auto mb-4 text-indigo-500/30" />
-                        <h3 className="text-zinc-200 font-semibold mb-2 text-lg">No Squad Selected</h3>
-                        <p className="text-sm text-zinc-400 leading-relaxed">
+                        <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground/20" />
+                        <h3 className="text-foreground font-bold mb-2 text-lg tracking-tight">No Squad Selected</h3>
+                        <p className="text-sm text-muted-foreground leading-relaxed font-medium">
                             Pick one or more personnel above. The backlog will automatically populate with existing unfinished work related to those personnel.
                         </p>
                     </div>
@@ -463,13 +437,13 @@ export function NextSprintPlanningView({
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] xl:grid-cols-[40%_60%] gap-6 flex-1 items-start">
                     {/* Left Column: Squad Backlog */}
-                    <div className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-5 shadow-lg shadow-black/20 flex flex-col h-[75vh]">
-                        <div className="flex items-center justify-between mb-5 pb-3 border-b border-zinc-800/60 shrink-0">
+                    <div className="rounded-xl border border-border bg-card/60 p-5 shadow-sm flex flex-col h-[75vh]">
+                        <div className="flex items-center justify-between mb-5 pb-3 border-b border-border shrink-0">
                             <div className="flex items-center gap-2">
-                                <Layers className="w-4 h-4 text-indigo-400" />
-                                <h3 className="font-semibold text-zinc-100 text-sm">Squad Uncompleted Backlog</h3>
+                                <Layers className="w-4 h-4 text-[#1D3557] dark:text-indigo-400" />
+                                <h3 className="font-bold text-foreground text-sm tracking-tight">Squad Uncompleted Backlog</h3>
                             </div>
-                            <div className="text-[10px] text-zinc-500 flex items-center gap-1">
+                            <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-bold">
                                 <GripVertical className="w-3 h-3" />
                                 Drag tasks to draft
                             </div>
@@ -479,9 +453,9 @@ export function NextSprintPlanningView({
                             {/* Combination Backlog */}
                             {combinationBacklogs.map(group => (
                                 <div key={group.involvedList.join('|')} className="space-y-3">
-                                    <div className="flex items-center gap-2 text-indigo-400 border-b border-indigo-900/40 pb-1.5">
+                                    <div className="flex items-center gap-2 text-[#1D3557] dark:text-indigo-400 border-b border-indigo-100 dark:border-indigo-900/30 pb-1.5">
                                         <Users className="w-3.5 h-3.5" />
-                                        <h4 className="text-[11px] font-semibold uppercase tracking-widest">
+                                        <h4 className="text-[13px] font-bold tracking-tight">
                                             {group.involvedList.length === squadMembers.length 
                                                 ? `Shared by Squad (${group.tasks.length})`
                                                 : `Shared: ${group.involvedList.join(', ')} (${group.tasks.length})`}
@@ -499,9 +473,9 @@ export function NextSprintPlanningView({
                                 if (tasks.length === 0) return null;
                                 return (
                                     <div key={member} className="space-y-3">
-                                        <div className="flex items-center gap-2 text-zinc-400 border-b border-zinc-800/50 pb-1.5">
+                                        <div className="flex items-center gap-2 text-muted-foreground border-b border-border/50 pb-1.5">
                                             <User className="w-3.5 h-3.5" />
-                                            <h4 className="text-[11px] font-semibold uppercase tracking-widest">{member}'s Tasks ({tasks.length})</h4>
+                                            <h4 className="text-[13px] font-bold tracking-tight">{member}'s Tasks ({tasks.length})</h4>
                                         </div>
                                         <div className="space-y-2.5">
                                             {tasks.map(task => renderCard(task, 'backlog'))}
@@ -511,7 +485,7 @@ export function NextSprintPlanningView({
                             })}
                             
                             {combinationBacklogs.length === 0 && squadMembers.every(m => individualBacklog[m].length === 0) && (
-                                <div className="text-center py-12 text-zinc-500 text-sm opacity-60">
+                                <div className="text-center py-12 text-muted-foreground text-sm font-medium opacity-60">
                                     No tasks to roll over.
                                 </div>
                             )}
@@ -523,23 +497,23 @@ export function NextSprintPlanningView({
                         onDragOver={(e) => { e.preventDefault(); setDragOverPlan(true); }}
                         onDragLeave={() => setDragOverPlan(false)}
                         onDrop={handleDrop}
-                        className={`rounded-xl border p-5 flex flex-col h-[75vh] shadow-xl shadow-black/40 transition-colors ${
+                        className={`rounded-xl border p-5 flex flex-col h-[75vh] shadow-lg transition-all ${
                             dragOverPlan
-                                ? 'border-emerald-500/50 bg-emerald-950/10'
-                                : 'border-zinc-800 bg-black/60'
+                                ? 'border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/10'
+                                : 'border-border bg-card'
                         }`}
                     >
-                        <div className="flex items-center justify-between mb-4 pb-4 border-b border-zinc-800 flex-shrink-0">
+                        <div className="flex items-center justify-between mb-4 pb-4 border-b border-border flex-shrink-0">
                             <div className="flex items-center gap-2">
-                                <Target className="w-4 h-4 text-emerald-400" />
-                                <h3 className="font-semibold text-zinc-100 text-sm">Squad Draft Plan</h3>
-                                <Badge variant="secondary" className="bg-zinc-800">{squadDrafts.length}</Badge>
+                                <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                <h3 className="font-bold text-foreground text-sm tracking-tight">Squad Draft Plan</h3>
+                                <Badge variant="outline" className="bg-muted text-muted-foreground border-border">{squadDrafts.length}</Badge>
                             </div>
                             
                             <button
                                 onClick={handleSendToWebhook}
                                 disabled={squadDrafts.length === 0 || isSyncing}
-                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:bg-zinc-800 disabled:text-zinc-500 disabled:border-zinc-700 text-white text-xs font-bold rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.3)] disabled:shadow-none transition-all flex items-center gap-2 active:scale-95 border border-emerald-400/50"
+                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:bg-muted disabled:text-muted-foreground text-white text-xs font-bold rounded-lg shadow-sm transition-all flex items-center gap-2 active:scale-95 border border-emerald-500/30"
                             >
                                 {isSyncing ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -558,20 +532,20 @@ export function NextSprintPlanningView({
 
                         {/* ── Sync Progress Panel ── */}
                         {syncProgress && (
-                            <div className="mb-4 p-4 bg-zinc-950/80 border border-zinc-700/60 rounded-xl space-y-4 shadow-inner">
+                            <div className="mb-4 p-4 bg-secondary/50 border border-border rounded-xl space-y-4 shadow-inner">
                                 {/* Progress bar */}
                                 <div className="space-y-2">
-                                    <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-semibold">
-                                        <span className="text-zinc-400 flex items-center gap-1.5">
-                                            {syncProgress.phase === 'sending' && <><Loader2 className="w-3 h-3 animate-spin text-emerald-400" /> Sending tasks to Lark…</>}
-                                            {syncProgress.phase === 'verifying' && <><RefreshCw className="w-3 h-3 animate-spin text-blue-400" /> Verifying with Google Sheet…</>}
-                                            {syncProgress.phase === 'done' && <><ShieldCheck className="w-3 h-3 text-emerald-400" /> Sync Complete</>}
+                                    <div className="flex items-center justify-between text-[11px] font-bold tracking-tight">
+                                        <span className="text-muted-foreground flex items-center gap-1.5">
+                                            {syncProgress.phase === 'sending' && <><Loader2 className="w-3 h-3 animate-spin text-emerald-600 dark:text-emerald-400" /> Sending tasks to Lark…</>}
+                                            {syncProgress.phase === 'verifying' && <><RefreshCw className="w-3 h-3 animate-spin text-blue-600 dark:text-blue-400" /> Verifying with Google Sheet…</>}
+                                            {syncProgress.phase === 'done' && <><ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Sync Complete</>}
                                         </span>
-                                        <span className="text-zinc-500 font-mono">
+                                        <span className="text-muted-foreground font-mono">
                                             {syncProgress.completed}/{syncProgress.total}
                                         </span>
                                     </div>
-                                    <div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+                                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden border border-border/50">
                                         <div
                                             className="h-full rounded-full transition-all duration-500 ease-out"
                                             style={{
@@ -589,24 +563,24 @@ export function NextSprintPlanningView({
                                     {syncProgress.results.map(r => (
                                         <div
                                             key={r.taskId}
-                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-colors ${
+                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-colors border ${
                                                 r.status === 'sending'
-                                                    ? 'bg-indigo-950/40 border border-indigo-800/40'
+                                                    ? 'bg-primary/5 border-primary/20'
                                                     : r.status === 'success'
-                                                        ? 'bg-emerald-950/20 border border-emerald-900/30'
+                                                        ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/30'
                                                         : r.status === 'failed'
-                                                            ? 'bg-red-950/30 border border-red-900/40'
-                                                            : 'bg-zinc-900/50 border border-zinc-800/30'
+                                                            ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/30'
+                                                            : 'bg-muted/50 border-border/50'
                                             }`}
                                         >
-                                            {r.status === 'pending' && <Clock className="w-3 h-3 text-zinc-500 shrink-0" />}
-                                            {r.status === 'sending' && <Loader2 className="w-3 h-3 text-indigo-400 animate-spin shrink-0" />}
-                                            {r.status === 'success' && <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />}
-                                            {r.status === 'failed' && <XCircle className="w-3 h-3 text-red-400 shrink-0" />}
-                                            <span className="font-mono text-zinc-500 shrink-0">{r.taskId}</span>
-                                            <span className="text-zinc-300 truncate">{r.taskName}</span>
+                                            {r.status === 'pending' && <Clock className="w-3 h-3 text-muted-foreground shrink-0" />}
+                                            {r.status === 'sending' && <Loader2 className="w-3 h-3 text-primary animate-spin shrink-0" />}
+                                            {r.status === 'success' && <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />}
+                                            {r.status === 'failed' && <XCircle className="w-3 h-3 text-red-600 dark:text-red-400 shrink-0" />}
+                                            <span className="font-mono text-muted-foreground shrink-0">{r.taskId}</span>
+                                            <span className="text-foreground font-medium truncate">{r.taskName}</span>
                                             {r.error && (
-                                                <span className="ml-auto text-red-400 text-[10px] font-mono shrink-0 truncate max-w-[150px]" title={r.error}>
+                                                <span className="ml-auto text-red-600 dark:text-red-400 text-[10px] font-mono shrink-0 truncate max-w-[150px]" title={r.error}>
                                                     {r.error}
                                                 </span>
                                             )}
@@ -616,9 +590,9 @@ export function NextSprintPlanningView({
 
                                 {/* Verification results */}
                                 {syncProgress.phase === 'done' && syncProgress.verificationResults.length > 0 && (
-                                    <div className="pt-3 border-t border-zinc-800 space-y-2">
-                                        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-semibold text-zinc-400">
-                                            <ShieldCheck className="w-3 h-3 text-blue-400" />
+                                    <div className="pt-3 border-t border-border space-y-2">
+                                        <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-tight text-muted-foreground">
+                                            <ShieldCheck className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                                             Google Sheet Verification
                                         </div>
                                         <div className="space-y-1.5 max-h-[180px] overflow-y-auto custom-scrollbar pr-1">
@@ -627,26 +601,26 @@ export function NextSprintPlanningView({
                                                     key={v.taskId}
                                                     className={`flex items-start gap-2 px-3 py-2 rounded-lg text-xs border ${
                                                         v.matched
-                                                            ? 'bg-emerald-950/20 border-emerald-900/30'
-                                                            : 'bg-amber-950/20 border-amber-900/30'
+                                                            ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/30'
+                                                            : 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/30'
                                                     }`}
                                                 >
                                                     {v.matched
-                                                        ? <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />
-                                                        : <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0 mt-0.5" />}
+                                                        ? <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                                                        : <AlertTriangle className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />}
                                                     <div className="min-w-0">
                                                         <div className="flex items-center gap-1.5">
-                                                            <span className="font-mono text-zinc-500">{v.taskId}</span>
-                                                            <span className="text-zinc-300 truncate">{v.taskName}</span>
+                                                            <span className="font-mono text-muted-foreground">{v.taskId}</span>
+                                                            <span className="text-foreground font-semibold truncate">{v.taskName}</span>
                                                         </div>
-                                                        <div className={`text-[10px] mt-0.5 ${v.matched ? 'text-emerald-400/80' : 'text-amber-400/80'} font-mono`}>
+                                                        <div className={`text-[10px] mt-0.5 ${v.matched ? 'text-emerald-600 dark:text-emerald-400/80' : 'text-amber-600 dark:text-amber-400/80'} font-mono`}>
                                                             {v.detail}
                                                         </div>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
-                                        <p className="text-[10px] text-zinc-600 italic">
+                                        <p className="text-[10px] text-muted-foreground italic font-medium">
                                             ⚠️ Mismatches may be normal if Lark automation hasn't propagated to the Google Sheet yet.
                                         </p>
                                     </div>
@@ -657,7 +631,7 @@ export function NextSprintPlanningView({
                                     <div className="flex justify-end">
                                         <button
                                             onClick={() => setSyncProgress(null)}
-                                            className="text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors px-2 py-1 rounded hover:bg-zinc-800/50"
+                                            className="text-[10px] text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded hover:bg-muted font-bold"
                                         >
                                             Dismiss
                                         </button>
@@ -668,23 +642,23 @@ export function NextSprintPlanningView({
 
                         {/* Bulk Edit Panel */}
                         {squadDrafts.length > 0 && (
-                            <div className="mb-4 p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex-shrink-0 flex flex-col sm:flex-row sm:items-end gap-3">
-                                <div className="space-y-1flex-1">
-                                    <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold block">Bulk Set Target Sprint</label>
+                            <div className="mb-4 p-3 bg-secondary/50 border border-border rounded-lg flex-shrink-0 flex flex-col sm:flex-row sm:items-end gap-3 shadow-inner">
+                                <div className="space-y-1 flex-1">
+                                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-black block">Bulk Set Target Sprint</label>
                                     <input 
                                         type="text" 
                                         value={bulkTargetSprint}
                                         onChange={e => setBulkTargetSprint(e.target.value)}
-                                        className="w-full sm:max-w-[120px] bg-zinc-950 border border-zinc-700 text-xs text-zinc-200 px-2 py-1.5 rounded focus:border-emerald-500 focus:outline-none transition-colors"
+                                        className="w-full sm:max-w-[120px] bg-background border border-border text-xs text-foreground px-2 py-1.5 rounded focus:border-primary focus:outline-none transition-colors font-mono"
                                         placeholder="e.g. 24"
                                     />
                                 </div>
                                 <div className="space-y-1 flex-1">
-                                    <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold block">Bulk Set Target Status</label>
+                                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-black block">Bulk Set Target Status</label>
                                     <select 
                                         value={bulkTargetStatus}
                                         onChange={e => setBulkTargetStatus(e.target.value)}
-                                        className="w-full sm:max-w-[160px] bg-zinc-950 border border-zinc-700 text-xs text-zinc-200 px-2 py-1.5 rounded focus:border-emerald-500 focus:outline-none transition-colors"
+                                        className="w-full sm:max-w-[160px] bg-background border border-border text-xs text-foreground px-2 py-1.5 rounded focus:border-primary focus:outline-none transition-colors appearance-none"
                                     >
                                         <option value="">Keep Existing</option>
                                         <option value="Not Started">Not Started</option>
@@ -700,11 +674,11 @@ export function NextSprintPlanningView({
                                     </select>
                                 </div>
                                 <div className="space-y-1 flex-1">
-                                    <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold block">Bulk Set Sprint Goal</label>
+                                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-black block">Bulk Set Sprint Goal</label>
                                     <select 
                                         value={bulkTargetSprintGoal}
                                         onChange={e => setBulkTargetSprintGoal(e.target.value)}
-                                        className="w-full sm:max-w-[160px] bg-zinc-950 border border-zinc-700 text-xs text-zinc-200 px-2 py-1.5 rounded focus:border-emerald-500 focus:outline-none transition-colors"
+                                        className="w-full sm:max-w-[160px] bg-background border border-border text-xs text-foreground px-2 py-1.5 rounded focus:border-primary focus:outline-none transition-colors appearance-none"
                                     >
                                         <option value="">Keep Existing</option>
                                         <option value="Not Started">Not Started</option>
@@ -721,7 +695,7 @@ export function NextSprintPlanningView({
                                 </div>
                                 <button
                                     onClick={handleApplyBulkEdits}
-                                    className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-semibold rounded transition-colors whitespace-nowrap mt-2 sm:mt-0"
+                                    className="px-3 py-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-black rounded shadow-sm transition-all whitespace-nowrap mt-2 sm:mt-0 active:scale-95"
                                 >
                                     Apply to {squadDrafts.length} task(s)
                                 </button>
@@ -730,16 +704,16 @@ export function NextSprintPlanningView({
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3 pb-6">
                             {squadDrafts.length === 0 ? (
-                                <div className="h-full flex flex-col items-center justify-center text-zinc-600 gap-3 min-h-[150px]">
+                                <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-3 min-h-[150px]">
                                     {dragOverPlan ? (
                                         <div className="animate-pulse flex flex-col items-center">
                                             <Plus className="w-10 h-10 text-emerald-500/50 mb-2" />
-                                            <p className="text-sm font-medium text-emerald-400">Drop it!</p>
+                                            <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">Drop it!</p>
                                         </div>
                                     ) : (
                                         <>
                                             <Calendar className="w-10 h-10 opacity-20" />
-                                            <p className="text-sm">Drag tasks here or click "Add"</p>
+                                            <p className="text-sm font-medium">Drag tasks here or click "Add"</p>
                                         </>
                                     )}
                                 </div>
@@ -747,17 +721,17 @@ export function NextSprintPlanningView({
                                 squadDrafts.map((draft, idx) => {
                                     const task = analyses[draft.taskId];
                                     return (
-                                        <div key={draft.taskId} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 group relative shadow-md">
+                                        <div key={draft.taskId} className="bg-card border border-border rounded-xl p-4 group relative shadow-md hover:border-primary/30 transition-all">
                                             <div className="flex items-center justify-between mb-3">
                                                 <div className="flex items-center gap-2.5 min-w-0" onClick={() => onTaskClick(draft.taskId)}>
-                                                    <span className="text-[10px] font-mono text-zinc-500 bg-zinc-950 px-1.5 py-0.5 rounded shrink-0">#{idx + 1}</span>
-                                                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${task ? priorityDotColor(task.currentStatus) : 'bg-zinc-500'}`} />
-                                                    <span className="font-mono text-[10px] text-zinc-400 shrink-0">{draft.taskId}</span>
-                                                    <span className="text-sm text-zinc-100 font-semibold truncate cursor-pointer hover:underline">{task ? task.taskName : 'Unknown'}</span>
+                                                    <span className="text-[10px] font-mono text-muted-foreground bg-secondary px-1.5 py-0.5 rounded shrink-0">#{idx + 1}</span>
+                                                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${task ? priorityDotColor(task.currentStatus) : 'bg-muted'}`} />
+                                                    <span className="font-mono text-[10px] text-muted-foreground shrink-0">{draft.taskId}</span>
+                                                    <span className="text-sm text-foreground font-black truncate cursor-pointer hover:underline tracking-tight">{task ? task.taskName : 'Unknown'}</span>
                                                 </div>
                                                 <button
                                                     onClick={() => removeDraft(draft.taskId)}
-                                                    className="text-red-500/70 hover:text-red-400 hover:bg-red-950/30 p-1.5 rounded transition-colors"
+                                                    className="text-red-500/70 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 p-1.5 rounded transition-colors"
                                                     title="Remove from plan"
                                                 >
                                                     <Trash2 className="w-3.5 h-3.5" />
@@ -767,21 +741,21 @@ export function NextSprintPlanningView({
                                             {/* Edit Form */}
                                             <div className="grid grid-cols-[1fr_2fr] gap-4">
                                                 <div className="space-y-1.5">
-                                                    <label className="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold block">Sprint</label>
+                                                    <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-black block">Sprint</label>
                                                     <input 
                                                         type="text" 
                                                         value={draft.targetSprint}
                                                         onChange={e => updateDraft(draft.taskId, { targetSprint: e.target.value })}
-                                                        className="w-full bg-zinc-950 border border-zinc-700 text-xs font-mono text-zinc-200 px-2 py-1.5 rounded focus:border-emerald-500 focus:outline-none transition-colors"
+                                                        className="w-full bg-background border border-border text-xs font-mono text-foreground px-2 py-1.5 rounded focus:border-primary focus:outline-none transition-colors"
                                                         placeholder="Sprint #"
                                                     />
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    <label className="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold block">Status</label>
+                                                    <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-black block">Status</label>
                                                     <select 
                                                         value={draft.targetStatus}
                                                         onChange={e => updateDraft(draft.taskId, { targetStatus: e.target.value })}
-                                                        className="w-full bg-zinc-950 border border-zinc-700 text-xs text-zinc-200 px-2 py-1.5 rounded focus:border-emerald-500 focus:outline-none transition-colors appearance-none"
+                                                        className="w-full bg-background border border-border text-xs text-foreground px-2 py-1.5 rounded focus:border-primary focus:outline-none transition-colors appearance-none"
                                                     >
                                                         <option value="Not Started">Not Started</option>
                                                         <option value="In Process">In Process</option>
@@ -796,11 +770,11 @@ export function NextSprintPlanningView({
                                                     </select>
                                                 </div>
                                                 <div className="col-span-2 space-y-1.5">
-                                                    <label className="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold block">Sprint Goal</label>
+                                                    <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-black block">Sprint Goal</label>
                                                     <select 
                                                         value={draft.targetSprintGoal}
                                                         onChange={e => updateDraft(draft.taskId, { targetSprintGoal: e.target.value })}
-                                                        className="w-full bg-zinc-950 border border-zinc-700 text-xs text-zinc-200 px-2 py-1.5 rounded focus:border-emerald-500 focus:outline-none transition-colors appearance-none"
+                                                        className="w-full bg-background border border-border text-xs text-foreground px-2 py-1.5 rounded focus:border-primary focus:outline-none transition-colors appearance-none"
                                                     >
                                                         <option value="">(Empty / Ignore)</option>
                                                         <option value="Not Started">Not Started</option>

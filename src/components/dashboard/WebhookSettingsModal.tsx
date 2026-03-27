@@ -125,21 +125,21 @@ export function WebhookSettingsModal({
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
-                <div className="flex justify-between items-center p-6 border-b border-zinc-900">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-900/30 rounded-lg">
-                            <Send className="w-5 h-5 text-indigo-400" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="w-full max-w-2xl bg-card border border-border rounded-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-300">
+                <div className="flex justify-between items-center p-6 border-b border-border/50 bg-secondary/20 relative">
+                    <div className="flex items-center gap-4">
+                        <div className="p-2.5 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-600/20">
+                            <Send className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h3 className="text-xl font-bold text-zinc-100 font-display">Lark Webhook Settings</h3>
-                            <p className="text-sm text-zinc-500">Configure and test automation targets</p>
+                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">Automation Protocol</h3>
+                            <p className="text-[10px] font-bold text-muted-foreground/60 italic mt-1">Configure and test Lark synchronization targets.</p>
                         </div>
                     </div>
                     <button 
                         onClick={onClose} 
-                        className="p-2 hover:bg-zinc-900 rounded-full text-zinc-500 hover:text-zinc-200 transition-colors"
+                        className="p-2 hover:bg-secondary rounded-xl text-muted-foreground/40 hover:text-foreground transition-all active:scale-90"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -147,197 +147,202 @@ export function WebhookSettingsModal({
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
                     {/* Management Section */}
-                    <section className="space-y-4">
-                        <div className="flex items-center gap-2 text-zinc-200">
-                            <User className="w-4 h-4 text-zinc-500" />
-                            <h4 className="text-sm font-semibold uppercase tracking-wider">Webhook Management</h4>
+                    <section className="space-y-6">
+                        <div className="flex items-center gap-2.5 px-1">
+                            <User className="w-4 h-4 text-indigo-500" />
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.15em] text-foreground/80">Squad Webhook Registry</h4>
                         </div>
                         
                         <div className="grid gap-3">
                             {persons.map(person => (
-                                <div key={person} className="flex flex-col sm:flex-row sm:items-center gap-3 bg-zinc-900/40 p-3 rounded-xl border border-zinc-800/50 hover:border-zinc-700/50 transition-all">
-                                    <div className="flex items-center gap-2 min-w-[140px]">
-                                        <div className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400">
+                                <div key={person} className="flex flex-col sm:flex-row sm:items-center gap-3 bg-secondary/30 p-3 rounded-xl border border-border/50 hover:border-indigo-500/30 transition-all group">
+                                    <div className="flex items-center gap-3 min-w-[160px]">
+                                        <div className="w-8 h-8 rounded-lg bg-white dark:bg-black/20 flex items-center justify-center text-[10px] font-black text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform shadow-sm">
                                             {person.substring(0, 2).toUpperCase()}
                                         </div>
-                                        <span className="text-sm font-medium text-zinc-300">{person}</span>
+                                        <span className="text-xs font-black uppercase tracking-tight text-foreground/70">{person}</span>
                                     </div>
-                                    <div className="flex-1 relative group">
-                                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-600 group-focus-within:text-indigo-400" />
+                                    <div className="flex-1 relative">
+                                        <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/30" />
                                         <input
                                             type="text"
                                             defaultValue={webhooks[person] || ''}
-                                            placeholder="https://...larksuite.com/base/automation/webhook/..."
+                                            placeholder="https://...larksuite.com/..."
                                             onBlur={(e) => handleSave(person, e.target.value)}
-                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-400 focus:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all"
+                                            className="w-full bg-background border border-border rounded-xl pl-11 pr-4 py-2.5 text-xs text-foreground/80 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all placeholder:text-muted-foreground/30 shadow-sm"
                                         />
                                     </div>
                                     {webhooks[person] && (
-                                        <Badge variant="outline" className="h-6 bg-emerald-950/20 text-emerald-400 border-emerald-900/30 self-start sm:self-auto">
-                                            Configured
-                                        </Badge>
+                                        <div className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 text-[9px] font-black uppercase tracking-widest border border-emerald-200/50">
+                                            Linked
+                                        </div>
                                     )}
                                 </div>
                             ))}
                         </div>
                     </section>
 
-                    <hr className="border-zinc-900" />
+                    <div className="h-px bg-border/50" />
 
                     {/* Test Section */}
-                    <section className="space-y-4">
-                        <div className="flex items-center gap-2 text-zinc-200">
-                            <Globe className="w-4 h-4 text-indigo-400" />
-                            <h4 className="text-sm font-semibold uppercase tracking-wider">Test Lark Connection</h4>
+                    <section className="space-y-6">
+                        <div className="flex items-center gap-2.5 px-1">
+                            <RefreshCw className="w-4 h-4 text-indigo-500" />
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.15em] text-foreground/80">Diagnostic Testbed</h4>
                         </div>
 
-                        <div className="bg-indigo-950/10 border border-indigo-900/30 rounded-2xl p-5 space-y-5">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-zinc-500 ml-1">Test as Person</label>
+                        <div className="bg-indigo-50/20 dark:bg-indigo-950/10 border border-indigo-100 dark:border-indigo-900/30 rounded-xl p-5 space-y-5 shadow-sm">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Mock Deployment For</label>
                                     <select
                                         value={selectedPerson}
                                         onChange={(e) => setSelectedPerson(e.target.value)}
-                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                        className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none cursor-pointer shadow-sm"
                                     >
                                         {persons.map(p => <option key={p} value={p}>{p}</option>)}
                                     </select>
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-zinc-500 ml-1">Mock Task URL (Optional)</label>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Simulation Link</label>
                                     <div className="relative">
-                                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-600" />
+                                        <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/30" />
                                         <input
                                             type="text"
                                             value={testTaskUrl}
                                             onChange={(e) => setTestTaskUrl(e.target.value)}
-                                            placeholder="Paste a task link to test formatting"
-                                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-9 pr-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                            placeholder="Optional task record link"
+                                            className="w-full bg-background border border-border rounded-xl pl-11 pr-4 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-muted-foreground/30 shadow-sm"
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-zinc-800/30 pt-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-zinc-500 ml-1">Current Sprint</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Current Cycle</label>
                                     <select
                                         value={testCurrentSprint}
                                         onChange={(e) => setTestCurrentSprint(e.target.value)}
-                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                        className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-xs font-black text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none cursor-pointer shadow-sm"
                                     >
-                                        {configs.map(c => <option key={c.number} value={c.number}>Sprint {c.number}</option>)}
+                                        {configs.map(c => <option key={c.number} value={c.number}>Cycle {c.number}</option>)}
                                     </select>
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-zinc-500 ml-1">Next Sprint (Target)</label>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Forward Cycle</label>
                                     <select
                                         value={testNextSprint}
                                         onChange={(e) => setTestNextSprint(e.target.value)}
-                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-mono"
+                                        className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-xs font-black text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none cursor-pointer shadow-sm"
                                     >
-                                        {configs.map(c => <option key={c.number} value={c.number}>Sprint {c.number}</option>)}
+                                        {configs.map(c => <option key={c.number} value={c.number}>Cycle {c.number}</option>)}
                                     </select>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-zinc-500 ml-1">Task Status</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Mock Status</label>
                                     <select
                                         value={testStatus}
                                         onChange={(e) => setTestStatus(e.target.value)}
-                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                        className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none cursor-pointer shadow-sm"
                                     >
                                         {WORKFLOW_STATUSES.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
                                     </select>
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-medium text-zinc-500 ml-1">Task Sprint Goal</label>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Mock Goal Vector</label>
                                     <select
                                         value={testSprintGoal}
                                         onChange={(e) => setTestSprintGoal(e.target.value)}
-                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-mono"
+                                        className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none cursor-pointer shadow-sm"
                                     >
                                         {WORKFLOW_STATUSES.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
                                     </select>
                                 </div>
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-zinc-500 ml-1 block">Webhook URL to Test</label>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Endpoint Verification</label>
                                 <input
                                     type="text"
                                     value={testWebhookUrl}
                                     onChange={(e) => setTestWebhookUrl(e.target.value)}
-                                    placeholder="Use default or paste a test webhook URL"
-                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-mono"
+                                    placeholder="Verify endpoint URL before transmission"
+                                    className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-xs font-mono text-indigo-600 dark:text-indigo-400 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm"
                                 />
                             </div>
                             
-                            <div className="flex items-center gap-2 p-2 bg-indigo-900/10 border border-indigo-500/20 rounded-lg">
-                                <input
-                                    type="checkbox"
-                                    id="simulateMoved"
-                                    checked={simulateMoved}
-                                    onChange={(e) => setSimulateMoved(e.target.checked)}
-                                    className="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-indigo-600 focus:ring-indigo-500/20 focus:ring-offset-0"
-                                />
-                                <label htmlFor="simulateMoved" className="text-xs font-semibold text-indigo-300 flex items-center gap-1.5 cursor-pointer">
-                                    <RefreshCw className={`w-3 h-3 ${simulateMoved ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
-                                    Simulate "Moved to Next Sprint" for this task
-                                </label>
+                            <div className="flex items-center gap-3 p-3 bg-indigo-600/5 border border-indigo-500/20 rounded-xl group cursor-pointer hover:bg-indigo-600/10 transition-all" onClick={() => setSimulateMoved(!simulateMoved)}>
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${simulateMoved ? 'bg-indigo-600 text-white shadow-lg' : 'bg-secondary text-muted-foreground/40'}`}>
+                                    <RefreshCw className={`w-5 h-5 ${simulateMoved ? 'animate-spin-slow' : ''}`} />
+                                </div>
+                                <div className="flex-1">
+                                    <h5 className="text-[10px] font-black uppercase tracking-widest text-foreground">Next-Cycle Propagation</h5>
+                                    <p className="text-[9px] font-bold text-muted-foreground/60 italic">Simulate "Moved to Next Sprint" for this telemetry sample.</p>
+                                </div>
+                                <div className={`w-12 h-6 rounded-full relative transition-all ${simulateMoved ? 'bg-indigo-600' : 'bg-secondary'}`}>
+                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${simulateMoved ? 'left-7 shadow-md' : 'left-1'}`} />
+                                </div>
                             </div>
 
-                            <div className="flex items-center justify-between pt-2">
-                                <p className="text-[10px] text-zinc-500 italic max-w-xs">
-                                    Note: Running a test sends a sample JSON payload to the specified URL. It does not affect your production to-do lists.
-                                </p>
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-4">
+                                <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-xl border border-border/50 max-w-sm">
+                                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                                    <p className="text-[9px] font-bold text-muted-foreground/60 leading-tight italic">
+                                        Diagnostic routines emit sample JSON payloads. Production registries remain unaffected by this operations.
+                                    </p>
+                                </div>
                                 <button
                                     onClick={handleRunTest}
                                     disabled={isTesting || !testWebhookUrl}
-                                    className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
+                                    className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-indigo-600/30 active:scale-95"
                                 >
                                     {isTesting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                                    Run Test
+                                    Trigger Transmission
                                 </button>
                             </div>
 
                             {/* Result Display */}
                             {testResult && (
-                                <div className={`mt-4 rounded-xl border p-4 animate-in fade-in slide-in-from-top-2 duration-300 ${
+                                <div className={`mt-5 rounded-xl border p-5 animate-in fade-in slide-in-from-top-4 duration-500 shadow-lg ${
                                     testResult.success 
-                                        ? 'bg-emerald-950/20 border-emerald-900/50' 
-                                        : 'bg-red-950/20 border-red-900/50'
+                                        ? 'bg-emerald-50/50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/20 dark:border-emerald-800 dark:text-emerald-300' 
+                                        : 'bg-rose-50/50 border-rose-200 text-rose-800 dark:bg-rose-950/20 dark:border-rose-800 dark:text-rose-300'
                                 }`}>
-                                    <div className="flex items-start gap-3">
-                                        {testResult.success ? (
-                                            <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                                        ) : (
-                                            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                                        )}
-                                        <div className="flex-1 space-y-2">
+                                    <div className="flex items-start gap-4">
+                                        <div className={`p-2 rounded-xl text-white ${testResult.success ? 'bg-emerald-600' : 'bg-rose-600'}`}>
+                                            {testResult.success ? (
+                                                <CheckCircle2 className="w-5 h-5" />
+                                            ) : (
+                                                <AlertCircle className="w-5 h-5 " />
+                                            )}
+                                        </div>
+                                        <div className="flex-1 space-y-4">
                                             <div className="flex items-center justify-between">
-                                                <h5 className={`text-sm font-bold ${testResult.success ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                    {testResult.success ? 'Test Passed' : 'Test Failed'}
+                                                <h5 className="text-[10px] font-black uppercase tracking-widest opacity-80">
+                                                    {testResult.success ? 'Diagnostic Passed' : 'Diagnostic Failure'}
                                                 </h5>
-                                                <span className="text-[10px] bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 text-zinc-500">
+                                                <span className="text-[9px] font-black uppercase tracking-widest opacity-40">
                                                     {new Date().toLocaleTimeString()}
                                                 </span>
                                             </div>
-                                            <p className="text-xs text-zinc-300">{testResult.message}</p>
+                                            <p className="text-xs font-bold leading-relaxed">{testResult.message}</p>
                                             
                                             {testResult.data && (
-                                                <div className="mt-3 relative">
-                                                    <div className="absolute top-2 right-2 flex gap-2">
+                                                <div className="mt-4 relative group/code">
+                                                    <div className="absolute top-3 right-3 opacity-0 group-hover/code:opacity-100 transition-all">
                                                         <button 
                                                             onClick={() => navigator.clipboard.writeText(JSON.stringify(testResult.data, null, 2))}
-                                                            className="p-1 hover:bg-zinc-800 rounded transition-colors text-zinc-500 hover:text-zinc-300"
+                                                            className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all text-white backdrop-blur-sm shadow-xl"
+                                                            title="Copy sequence"
                                                         >
-                                                            <Copy className="w-3.5 h-3.5" />
+                                                            <Copy className="w-4 h-4" />
                                                         </button>
                                                     </div>
-                                                    <pre className="text-[10px] bg-black/50 p-3 rounded-lg border border-zinc-800/50 overflow-x-auto custom-scrollbar font-mono text-zinc-400">
+                                                    <pre className="text-[11px] bg-black/80 p-4 rounded-xl border border-white/5 overflow-x-auto custom-scrollbar font-mono text-emerald-400 leading-relaxed shadow-inner">
                                                         {JSON.stringify(testResult.data, null, 2)}
                                                     </pre>
                                                 </div>
@@ -350,12 +355,12 @@ export function WebhookSettingsModal({
                     </section>
                 </div>
 
-                <div className="p-6 border-t border-zinc-900 flex justify-end">
+                <div className="p-6 border-t border-border/50 flex justify-end bg-secondary/20">
                     <button 
                         onClick={onClose}
-                        className="px-6 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-xl font-bold transition-all"
+                        className="px-8 py-2.5 bg-foreground/5 hover:bg-foreground/10 text-foreground text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all active:scale-95"
                     >
-                        Done
+                        Close Diagnostics
                     </button>
                 </div>
             </div>

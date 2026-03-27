@@ -11,8 +11,10 @@ import {
     Copy,
     RefreshCw,
     Shield,
-    Zap,
+    Users,
 } from 'lucide-react';
+import { priorityDotColor, StatusBadge } from '@/lib/status-utils';
+import { TaskCard } from './TaskCard';
 
 interface PersonnelOverviewProps {
     summaries: PersonSummary[];
@@ -47,50 +49,8 @@ function sortTasks(tasks: TaskAnalysis[]): TaskAnalysis[] {
 }
 
 // ── Status priority dot color ────────────────────────────────────
-function priorityDotColor(status: string): string {
-    const p = getStatusPriority(status);
-    if (p === 1) return 'bg-red-500';       // Reprocess
-    if (p === 2) return 'bg-amber-500';     // Waiting to Integrate
-    if (p === 3) return 'bg-blue-500';      // In Process
-    if (p === 4) return 'bg-zinc-500';      // Not Started
-    if (p >= 6) return 'bg-emerald-500';    // Staging Passed / Completed
-    return 'bg-zinc-600';                   // others
-}
-
-function riskBadge(analysis: TaskAnalysis) {
-    if (analysis.riskLevel === 'critical') {
-        return (
-            <Badge variant="destructive" className="gap-1 text-[10px]">
-                <RefreshCw className="w-2.5 h-2.5" />
-                DOOM LOOP ×{analysis.doomLoopCount || analysis.reprocessCount}
-            </Badge>
-        );
-    }
-    if (analysis.riskLevel === 'elevated') {
-        return (
-            <Badge className="gap-1 text-[10px] bg-amber-900/80 text-amber-200 border-amber-700">
-                <AlertTriangle className="w-2.5 h-2.5" />
-                ELEVATED
-            </Badge>
-        );
-    }
-    return null;
-}
-
-function statusBadge(status: string) {
-    const severity = getStatusSeverity(status);
-    const classes: Record<string, string> = {
-        normal: 'bg-zinc-800 text-zinc-300 border-zinc-700',
-        high: 'bg-amber-950 text-amber-300 border-amber-800 animate-pulse',
-        critical: 'bg-red-950 text-red-300 border-red-800 animate-pulse',
-    };
-    return (
-        <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-mono font-semibold ${classes[severity]}`}>
-            {isBottleneckStatus(status) && <Zap className="w-2.5 h-2.5 mr-1" />}
-            {status}
-        </span>
-    );
-}
+// ── Status priority dot color ────────────────────────────────────
+// Note: priorityDotColor and StatusBadge are now imported from @/lib/status-utils
 
 function formatStaleHours(ms: number): string {
     const hours = Math.floor(ms / 3600000);
@@ -173,43 +133,43 @@ export function PersonnelOverview({ summaries, highRiskIds, onTaskClick }: Perso
                 return (
                     <div
                         key={summary.person}
-                        className={`rounded-xl border p-4 transition-all ${hasCritical
-                            ? 'border-red-700/60 bg-red-950/20 shadow-[0_0_30px_rgba(239,68,68,0.1)]'
+                        className={`rounded-xl border p-3 transition-all shadow-sm ${hasCritical
+                            ? 'border-red-200 bg-red-50 dark:border-red-900/60 dark:bg-red-950/20 dark:shadow-[0_0_30px_rgba(239,68,68,0.1)]'
                             : hasBlockers
-                                ? 'border-amber-700/40 bg-amber-950/10'
-                                : 'border-zinc-800 bg-zinc-950/50'
+                                ? 'border-amber-200 bg-amber-50 dark:border-amber-700/40 dark:bg-amber-950/10'
+                                : 'border-border bg-card'
                             }`}
                     >
                         {/* Person Header */}
-                        <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-border/50">
                             <div className="flex items-center gap-2">
                                 <div className={`w-2.5 h-2.5 rounded-full ${hasCritical ? 'bg-red-500 animate-pulse' : hasBlockers ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
                                     }`} />
-                                <h3 className="font-semibold text-zinc-100 text-sm">{summary.person}</h3>
+                                <h3 className="font-bold text-foreground text-sm tracking-tight">{summary.person}</h3>
                                 <button
                                     type="button"
                                     onClick={() => handleCopyForDM(summary)}
-                                    className="p-1.5 rounded-md hover:bg-zinc-700/80 text-zinc-400 hover:text-zinc-200 transition-colors"
+                                    className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-all active:scale-90"
                                     title="Copy to-do list for DM"
                                 >
                                     {justCopied ? (
-                                        <span className="text-[10px] text-emerald-400 font-medium">Copied!</span>
+                                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">Copied!</span>
                                     ) : (
                                         <Copy className="w-3.5 h-3.5" />
                                     )}
                                 </button>
                             </div>
-                            <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono">
+                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-semibold">
                                 <span>{summary.totalTasks} tasks</span>
                                 {summary.blockingTasks.length > 0 && (
-                                    <Badge variant="destructive" className="text-[9px] px-1.5 py-0">
+                                    <Badge variant="destructive" className="text-[9px] px-1.5 py-0 font-bold">
                                         {summary.blockingTasks.length} blocked
                                     </Badge>
                                 )}
                                 {totalStaleMs > 0 && (
-                                    <span className="flex items-center gap-0.5 text-amber-400">
+                                    <span className="flex items-center gap-0.5 text-amber-600 dark:text-amber-400">
                                         <Clock className="w-2.5 h-2.5" />
-                                        {formatStaleHours(totalStaleMs)} stale
+                                        {formatStaleHours(totalStaleMs)}
                                     </span>
                                 )}
                             </div>
@@ -217,61 +177,24 @@ export function PersonnelOverview({ summaries, highRiskIds, onTaskClick }: Perso
 
                         {/* Priority Suggestion (Use Case 3) */}
                         {summary.suggestion && (
-                            <div className="mb-3 px-3 py-2 rounded-lg bg-amber-950/50 border border-amber-800/50 text-amber-200 text-xs flex items-start gap-2">
-                                <Shield className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                            <div className="mb-2.5 px-2.5 py-1.5 rounded-lg bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/50 dark:border-amber-800/50 dark:text-amber-200 text-[11px] flex items-start gap-2 font-medium">
+                                <Shield className="w-3 h-3 flex-shrink-0 mt-0.5" />
                                 <span>{summary.suggestion}</span>
                             </div>
                         )}
 
                         {/* Task List - sorted by status priority then stale hours */}
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             {sortedTasks.map((task) => {
-                                const isHR = highRiskIds.has(task.taskId);
                                 return (
-                                    <button
+                                    <TaskCard
                                         key={task.taskId}
-                                        onClick={() => onTaskClick(task.taskId)}
-                                        className={`w-full text-left rounded-lg border px-3 py-2 transition-all cursor-pointer group ${isHR
-                                            ? 'border-red-600/50 bg-red-950/30 hover:border-red-500/70 hover:bg-red-950/40'
-                                            : task.isStale
-                                                ? 'border-amber-700/30 bg-amber-950/10 hover:border-amber-600/50 hover:bg-amber-950/20'
-                                                : 'border-zinc-800/50 bg-zinc-900/30 hover:border-zinc-700/70 hover:bg-zinc-800/50'
-                                            }`}
-                                    >
-                                        <div className="flex items-center justify-between gap-2">
-                                            <div className="flex items-center gap-2 min-w-0 flex-1">
-                                                {/* Priority dot */}
-                                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${priorityDotColor(task.currentStatus)}`} />
-                                                {isHR && (
-                                                    <span className="text-red-500 text-[10px] font-bold flex-shrink-0">📌</span>
-                                                )}
-                                                <span className="font-mono text-[10px] text-zinc-400 flex-shrink-0">
-                                                    {task.taskId}
-                                                </span>
-                                                <span className="text-xs text-zinc-200 truncate">
-                                                    {task.taskName}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-1 flex-shrink-0">
-                                                {riskBadge(task)}
-                                                <ChevronRight className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                            {statusBadge(task.currentStatus)}
-                                            {task.isStale && (
-                                                <span className="text-[9px] text-amber-400 font-mono flex items-center gap-1">
-                                                    <Clock className="w-2.5 h-2.5" />
-                                                    STALE {formatStaleHours(task.staleDurationMs)}
-                                                </span>
-                                            )}
-                                            {task.blockedBy && (
-                                                <span className="text-[9px] font-mono flex items-center gap-1 bg-red-950/40 text-red-300 px-1.5 py-0.5 rounded border border-red-900/50">
-                                                    <span className="opacity-70">Blocked by</span> {task.blockedBy}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </button>
+                                        task={task}
+                                        isHighRisk={highRiskIds.has(task.taskId)}
+                                        onTaskClick={onTaskClick}
+                                        blockedByLabel={task.blockedBy || undefined}
+                                        showMetadata={false}
+                                    />
                                 );
                             })}
                         </div>

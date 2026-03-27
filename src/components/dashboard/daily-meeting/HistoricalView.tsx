@@ -3,7 +3,8 @@ import { TaskAnalysis } from '@/lib/types';
 import { useDailyTodos } from '@/lib/hooks/useDailyTodos';
 import { format, isToday, isYesterday } from 'date-fns';
 import { PersonMeetingData } from './types';
-import { priorityDotColor, statusBadge } from './utils';
+import { priorityDotColor, StatusBadge } from '@/lib/status-utils';
+import { TaskCard } from '../TaskCard';
 import { hasMetSprintGoal } from '@/lib/utils';
 import {
     Calendar,
@@ -34,16 +35,16 @@ export function HistoricalView({
 
     if (pastHistory.length === 0) {
         return (
-            <div className="text-center py-12 text-zinc-500">
-                <History className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                <p className="text-sm">No history yet</p>
-                <p className="text-xs mt-1">Past daily plans will appear here</p>
+            <div className="flex flex-col items-center justify-center py-24 text-muted-foreground/30 bg-secondary/10 rounded-3xl border border-dashed border-border/50">
+                <History className="w-12 h-12 mb-4 opacity-10" />
+                <p className="text-xs font-bold text-muted-foreground/40 tracking-tight">Archive Empty</p>
+                <p className="text-[10px] mt-2 font-medium text-muted-foreground/30">Historical deployments will be logged here.</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             {pastHistory.map((entry) => {
                 const date = new Date(entry.date);
                 const completed = entry.items.filter((i) => i.completedAt).length;
@@ -52,85 +53,56 @@ export function HistoricalView({
                 return (
                     <div
                         key={entry.date}
-                        className="rounded-xl border border-zinc-800/50 bg-zinc-950/30 p-4"
+                        className="rounded-2xl border border-border bg-card/50 p-5 shadow-sm overflow-hidden relative"
                     >
-                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-zinc-800/30">
-                            <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-zinc-500" />
-                                <span className="font-medium text-zinc-200">
+                        <div className="flex items-center justify-between mb-5 pb-4 border-b border-border/50">
+                            <div className="flex items-center gap-3">
+                                <div className="p-1.5 rounded-lg bg-secondary">
+                                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                                </div>
+                                <span className="font-bold text-sm tracking-tight text-foreground">
                                     {isYesterday(date) ? 'Yesterday' : format(date, 'EEEE, MMM d')}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                                <div className={`text-[10px] font-bold tracking-tight px-2.5 py-1 rounded-full border shadow-sm ${
                                     completed === total && total > 0
-                                        ? 'bg-emerald-950/50 text-emerald-300'
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/50'
                                         : completed > 0
-                                            ? 'bg-amber-950/50 text-amber-300'
-                                            : 'bg-zinc-800 text-zinc-400'
-                                }}`}>
-                                    {completed}/{total} completed
+                                            ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/50'
+                                            : 'bg-secondary text-muted-foreground border-border/50'
+                                }`}>
+                                    {completed}/{total} Objectives Met
                                 </div>
                             </div>
                         </div>
-                        <div className="space-y-1.5">
+                        <div className="space-y-2.5">
                             {entry.items.map((todoItem) => {
                                 const task = analyses[todoItem.taskId];
                                 if (!task) {
                                     return (
                                         <div
                                             key={todoItem.taskId}
-                                            className="px-3 py-2 rounded-lg bg-zinc-900/50 border border-zinc-800/30"
+                                            className="px-4 py-3 rounded-xl bg-secondary/40 border border-dashed border-border/50 flex items-center justify-between"
                                         >
-                                            <span className="text-xs text-zinc-500 font-mono">
-                                                {todoItem.taskId} (task no longer in sprint)
+                                            <span className="text-[11px] text-muted-foreground/40 font-bold tracking-tight font-mono">
+                                                {todoItem.taskId}
                                             </span>
+                                            <span className="text-[10px] font-medium text-muted-foreground/30">Archive instance purged from active memory</span>
                                         </div>
                                     );
                                 }
+                                const blockedByLabel = task.blockedBy && task.blockedBy !== personData.person ? task.blockedBy : undefined;
                                 return (
-                                    <div
+                                    <TaskCard
                                         key={todoItem.taskId}
-                                        onClick={() => onTaskClick(task.taskId)}
-                                        className={`px-3 py-2 rounded-lg border cursor-pointer transition-colors group ${
-                                            todoItem.completedAt
-                                                ? 'border-emerald-800/30 bg-emerald-950/10 hover:border-emerald-700/50 hover:bg-emerald-950/20'
-                                                : 'border-zinc-800/30 bg-zinc-900/30 hover:border-zinc-700/50 hover:bg-zinc-800/50'
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            {todoItem.completedAt ? (
-                                                <Check className="w-3 h-3 text-emerald-500" />
-                                            ) : (
-                                                <div className="w-3 h-3 rounded border border-zinc-600" />
-                                            )}
-                                            <div className={`w-2 h-2 rounded-full ${priorityDotColor(task.currentStatus)}`} />
-                                            {highRiskIds.has(task.taskId) && (
-                                                <span className="text-red-500 text-[10px] font-bold flex-shrink-0">📌</span>
-                                            )}
-                                            <span className="font-mono text-[10px] text-zinc-500">{task.taskId}</span>
-                                            <span className={`text-xs truncate flex-1 ${todoItem.completedAt ? 'text-zinc-500 line-through' : 'text-zinc-300'}`}>
-                                                {task.taskName}
-                                            </span>
-                                            <ChevronRight className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 transition-colors flex-shrink-0" />
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-1 ml-5">
-                                            {statusBadge(task.currentStatus)}
-                                            {task.sprintGoal && (
-                                                <span className={`text-[9px] flex items-center gap-1 ${hasMetSprintGoal(task.currentStatus, task.sprintGoal) ? 'text-emerald-400' : 'text-zinc-600'}`}>
-                                                    {hasMetSprintGoal(task.currentStatus, task.sprintGoal) ? (
-                                                        <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" />
-                                                    ) : (
-                                                        <Target className="w-2 h-2" />
-                                                    )}
-                                                    {task.sprintGoal}
-                                                    {hasMetSprintGoal(task.currentStatus, task.sprintGoal) && (
-                                                        <span className="ml-1 text-[8px] px-1 py-0.5 rounded bg-emerald-950/50 text-emerald-300 font-semibold">MET</span>
-                                                    )}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
+                                        task={task}
+                                        isHighRisk={highRiskIds.has(task.taskId)}
+                                        onTaskClick={onTaskClick}
+                                        showSprintGoal={true}
+                                        todoCompleted={!!todoItem.completedAt}
+                                        blockedByLabel={blockedByLabel}
+                                    />
                                 );
                             })}
                         </div>

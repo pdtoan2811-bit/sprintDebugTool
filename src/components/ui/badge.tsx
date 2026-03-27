@@ -10,12 +10,12 @@ function Badge({ className, variant = "default", ...props }: BadgeProps) {
     return (
         <div
             className={cn(
-                "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2",
+                "inline-flex items-center rounded-sm border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
                 {
-                    "border-transparent bg-zinc-50 text-zinc-900 hover:bg-zinc-50/80": variant === "default",
-                    "border-transparent bg-zinc-800 text-zinc-50 hover:bg-zinc-800/80": variant === "secondary",
-                    "border-transparent bg-red-900 text-zinc-50 hover:bg-red-900/80": variant === "destructive",
-                    "text-zinc-50 border-zinc-800": variant === "outline",
+                    "border-transparent bg-primary text-primary-foreground hover:bg-primary/80": variant === "default",
+                    "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80": variant === "secondary",
+                    "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80": variant === "destructive",
+                    "text-foreground border-border": variant === "outline",
                 },
                 className
             )}
@@ -23,5 +23,6 @@ function Badge({ className, variant = "default", ...props }: BadgeProps) {
         />
     )
 }
+
 
 export { Badge }
