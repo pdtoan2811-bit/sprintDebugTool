@@ -9,6 +9,7 @@ import { Badge } from '../ui/badge';
 import { format } from 'date-fns';
 import {
     AlertTriangle,
+    Archive,
     Calendar,
     Check,
     ChevronDown,
@@ -42,6 +43,10 @@ interface EnhancedInspectorProps {
     onDeleteMeetingNote: (id: string) => void;
     // All persons in the sprint for context
     allPersons: string[];
+    // Archive
+    isArchived: boolean;
+    onArchiveTask: (taskId: string) => void;
+    onUnarchiveTask: (taskId: string) => void;
 }
 
 export function StandupInspector({
@@ -55,9 +60,13 @@ export function StandupInspector({
     onUpdateMeetingNote,
     onDeleteMeetingNote,
     allPersons,
+    isArchived,
+    onArchiveTask,
+    onUnarchiveTask,
 }: EnhancedInspectorProps) {
     // Meeting note form state
     const [showMeetingForm, setShowMeetingForm] = useState(false);
+    const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
     const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
     const [meetingIsStall, setMeetingIsStall] = useState(true);
     const [meetingStallReason, setMeetingStallReason] = useState('');
@@ -69,6 +78,7 @@ export function StandupInspector({
         if (segment) {
             // Reset meeting form
             setShowMeetingForm(false);
+            setShowArchiveConfirm(false);
             setEditingNoteId(null);
             setMeetingIsStall(true);
             setMeetingStallReason('');
@@ -227,6 +237,59 @@ export function StandupInspector({
                                 <ToggleLeft className="w-6 h-6 text-muted-foreground/30" />
                             )}
                         </button>
+                    </div>
+
+                    {/* ── Archive Task ── */}
+                    <div className="space-y-2">
+                        {!showArchiveConfirm ? (
+                            <button
+                                onClick={() => isArchived ? onUnarchiveTask(segment.taskId) : setShowArchiveConfirm(true)}
+                                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all active:scale-95 shadow-sm ${
+                                    isArchived
+                                        ? 'border-violet-500 bg-violet-50 text-violet-700 dark:bg-violet-950/30 dark:text-violet-300'
+                                        : 'border-border bg-secondary/30 text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                                }`}
+                            >
+                                <div className="flex items-center gap-2">
+                                    <Archive className={`w-3.5 h-3.5 ${isArchived ? 'text-violet-500' : ''}`} />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">
+                                        {isArchived ? 'Archived — Restore' : 'Archive Task'}
+                                    </span>
+                                </div>
+                                {isArchived ? (
+                                    <ToggleRight className="w-6 h-6 text-violet-500" />
+                                ) : (
+                                    <ToggleLeft className="w-6 h-6 text-muted-foreground/30" />
+                                )}
+                            </button>
+                        ) : (
+                            <div className="px-4 py-3 rounded-xl border border-rose-300 bg-rose-50/50 dark:bg-rose-950/20 dark:border-rose-800/50 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="flex items-center gap-2 text-rose-700 dark:text-rose-300">
+                                    <Archive className="w-3.5 h-3.5" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Confirm Archive</span>
+                                </div>
+                                <p className="text-[10px] font-bold text-rose-600/70 dark:text-rose-400/70 leading-relaxed">
+                                    This will hide the task from all views. The original Google Sheet data remains untouched. You can restore it anytime from Vault &amp; Config.
+                                </p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => {
+                                            onArchiveTask(segment.taskId);
+                                            setShowArchiveConfirm(false);
+                                        }}
+                                        className="flex-1 px-3 py-2 rounded-lg bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all active:scale-95 shadow-md shadow-rose-600/20"
+                                    >
+                                        Archive
+                                    </button>
+                                    <button
+                                        onClick={() => setShowArchiveConfirm(false)}
+                                        className="flex-1 px-3 py-2 rounded-lg bg-secondary border border-border text-muted-foreground text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-all active:scale-95"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* ── Doom Loop Indicator ── */}

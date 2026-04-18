@@ -1,204 +1,154 @@
 {
-  "next_sprint_plan_v2_8": {
-    "recvaTSzccpO1N": {
-      "taskId": "recvaTSzccpO1N",
-      "targetSprint": "9",
-      "targetStatus": "Ready for Test",
+  "next_sprint_plan_v2_10": {
+    "recveKn5wK1BZO": {
+      "taskId": "recveKn5wK1BZO",
+      "targetSprint": "11",
+      "targetStatus": "Testing",
       "targetSprintGoal": "Staging Passed",
       "order": 0
     },
-    "recv3K6oWOWQsx": {
-      "taskId": "recv3K6oWOWQsx",
-      "targetSprint": "9",
-      "targetStatus": "Pending",
-      "targetSprintGoal": "Staging Passed",
+    "recvf2zRMuqs8i": {
+      "taskId": "recvf2zRMuqs8i",
+      "targetSprint": "11",
+      "targetStatus": "Ready for Test",
+      "targetSprintGoal": "Reviewing",
       "order": 1
     },
-    "recvcpwOCxaAUr": {
-      "taskId": "recvcpwOCxaAUr",
-      "targetSprint": "9",
-      "targetStatus": "Reprocess",
-      "targetSprintGoal": "Staging Passed",
+    "recvfl34LoMy1I": {
+      "taskId": "recvfl34LoMy1I",
+      "targetSprint": "11",
+      "targetStatus": "Designing",
+      "targetSprintGoal": "Reviewing",
       "order": 2
     },
-    "recvdrJyu40C70": {
-      "taskId": "recvdrJyu40C70",
-      "targetSprint": "9",
-      "targetStatus": "Bug Fixing",
-      "targetSprintGoal": "Staging Passed",
+    "recvfAWx0ZIxAO": {
+      "taskId": "recvfAWx0ZIxAO",
+      "targetSprint": "11",
+      "targetStatus": "Designing",
+      "targetSprintGoal": "Reviewing",
       "order": 3
     },
-    "recvaZJ8AYjnBj": {
-      "taskId": "recvaZJ8AYjnBj",
-      "targetSprint": "9",
-      "targetStatus": "Ready for Test",
-      "targetSprintGoal": "Reprocess",
+    "recvfpUsK53pSR": {
+      "taskId": "recvfpUsK53pSR",
+      "targetSprint": "11",
+      "targetStatus": "Reprocess",
+      "targetSprintGoal": "Ready for test",
       "order": 4
     },
-    "recvaTSTAtMsLJ": {
-      "taskId": "recvaTSTAtMsLJ",
-      "targetSprint": "9",
+    "recvfgvIFzrXVT": {
+      "taskId": "recvfgvIFzrXVT",
+      "targetSprint": "11",
       "targetStatus": "Pending",
-      "targetSprintGoal": "Reprocess",
+      "targetSprintGoal": "Bug Fixing",
       "order": 5
     },
-    "recv3K7M2jDAau": {
-      "taskId": "recv3K7M2jDAau",
-      "targetSprint": "9",
-      "targetStatus": "Bug Fixing",
+    "recvf32gykm4bu": {
+      "taskId": "recvf32gykm4bu",
+      "targetSprint": "11",
+      "targetStatus": "Reviewing",
       "targetSprintGoal": "Staging Passed",
       "order": 6
     },
-    "recv3K5vuWp6BY": {
-      "taskId": "recv3K5vuWp6BY",
-      "targetSprint": "9",
-      "targetStatus": "Reprocess",
-      "targetSprintGoal": "Reprocess",
+    "recvfgkTQ8br7K": {
+      "taskId": "recvfgkTQ8br7K",
+      "targetSprint": "11",
+      "targetStatus": "Pending",
+      "targetSprintGoal": "Staging Passed",
       "order": 7
     },
-    "recvecvIRXwJFy": {
-      "taskId": "recvecvIRXwJFy",
-      "targetSprint": "9",
-      "targetStatus": "Ready for Test",
-      "targetSprintGoal": "Ready for test",
+    "recvfeDdV0Rh73": {
+      "taskId": "recvfeDdV0Rh73",
+      "targetSprint": "11",
+      "targetStatus": "Reprocess",
+      "targetSprintGoal": "Staging Passed",
       "order": 8
     },
-    "recvecwrADLb7b": {
-      "taskId": "recvecwrADLb7b",
-      "targetSprint": "9",
-      "targetStatus": "Ready for Test",
-      "targetSprintGoal": "Ready for test",
+    "recvfgkJSJVmAz": {
+      "taskId": "recvfgkJSJVmAz",
+      "targetSprint": "11",
+      "targetStatus": "Not Started",
+      "targetSprintGoal": "Staging Passed",
       "order": 9
     },
-    "recvecvlmAjLCa": {
-      "taskId": "recvecvlmAjLCa",
-      "targetSprint": "9",
-      "targetStatus": "Ready for Test",
-      "targetSprintGoal": "Ready for test",
+    "recvfk8QxwDX1i": {
+      "taskId": "recvfk8QxwDX1i",
+      "targetSprint": "11",
+      "targetStatus": "Reprocess",
+      "targetSprintGoal": "Staging Passed",
       "order": 10
     },
-    "recvecwUim8aWK": {
-      "taskId": "recvecwUim8aWK",
-      "targetSprint": "9",
+    "recvfAW2hIQ3Ox": {
+      "taskId": "recvfAW2hIQ3Ox",
+      "targetSprint": "11",
       "targetStatus": "Ready for Test",
-      "targetSprintGoal": "Ready for test",
+      "targetSprintGoal": "Reviewing",
       "order": 11
     },
-    "recvehatl42xc4": {
-      "taskId": "recvehatl42xc4",
-      "targetSprint": "9",
-      "targetStatus": "Reprocess",
-      "targetSprintGoal": "Staging Passed",
+    "recvfjmljOFEYp": {
+      "taskId": "recvfjmljOFEYp",
+      "targetSprint": "11",
+      "targetStatus": "In Process",
+      "targetSprintGoal": "Completed",
       "order": 12
     },
-    "recv3K6fvev4vz": {
-      "taskId": "recv3K6fvev4vz",
-      "targetSprint": "9",
-      "targetStatus": "Bug Fixing",
-      "targetSprintGoal": "Staging Passed",
+    "recvfpUhkRNSeX": {
+      "taskId": "recvfpUhkRNSeX",
+      "targetSprint": "11",
+      "targetStatus": "Reprocess",
+      "targetSprintGoal": "Ready for test",
       "order": 13
     },
-    "recvdrImDeXSWT": {
-      "taskId": "recvdrImDeXSWT",
-      "targetSprint": "9",
-      "targetStatus": "Ready for Test",
-      "targetSprintGoal": "Ready for test",
+    "recvfYAwdI2w3q": {
+      "taskId": "recvfYAwdI2w3q",
+      "targetSprint": "11",
+      "targetStatus": "Not Started",
+      "targetSprintGoal": "",
       "order": 14
     },
-    "recvaMHnT98qyZ": {
-      "taskId": "recvaMHnT98qyZ",
-      "targetSprint": "9",
-      "targetStatus": "Reprocess",
+    "recvfjlEVnsrm1": {
+      "taskId": "recvfjlEVnsrm1",
+      "targetSprint": "11",
+      "targetStatus": "Reviewing",
       "targetSprintGoal": "Completed",
       "order": 15
     },
-    "recvds2m0wvx2f": {
-      "taskId": "recvds2m0wvx2f",
-      "targetSprint": "9",
-      "targetStatus": "In Process",
-      "targetSprintGoal": "Staging Passed",
+    "recvfB8PI0dwdN": {
+      "taskId": "recvfB8PI0dwdN",
+      "targetSprint": "11",
+      "targetStatus": "Reviewing",
+      "targetSprintGoal": "",
       "order": 16
     },
-    "recv3K7Ed9poE0": {
-      "taskId": "recv3K7Ed9poE0",
-      "targetSprint": "9",
-      "targetStatus": "Bug Fixing",
+    "recvfgyoZr9BK2": {
+      "taskId": "recvfgyoZr9BK2",
+      "targetSprint": "11",
+      "targetStatus": "In Process",
       "targetSprintGoal": "Staging Passed",
       "order": 17
     },
-    "recvcpmgR56ofw": {
-      "taskId": "recvcpmgR56ofw",
-      "targetSprint": "9",
+    "recvfjkTn0R7ey": {
+      "taskId": "recvfjkTn0R7ey",
+      "targetSprint": "11",
       "targetStatus": "In Process",
       "targetSprintGoal": "Staging Passed",
       "order": 18
     },
-    "recvehbwe2eAcI": {
-      "taskId": "recvehbwe2eAcI",
-      "targetSprint": "9",
+    "recvfB27vvTTHE": {
+      "taskId": "recvfB27vvTTHE",
+      "targetSprint": "11",
       "targetStatus": "In Process",
-      "targetSprintGoal": "",
+      "targetSprintGoal": "Reviewing",
       "order": 19
     },
-    "recvcpm5MtJ0bu": {
-      "taskId": "recvcpm5MtJ0bu",
-      "targetSprint": "9",
-      "targetStatus": "Ready for Test",
-      "targetSprintGoal": "Staging Passed",
+    "recvfB2y0QM0n8": {
+      "taskId": "recvfB2y0QM0n8",
+      "targetSprint": "11",
+      "targetStatus": "In Process",
+      "targetSprintGoal": "",
       "order": 20
-    },
-    "recvcpmsDbPM9F": {
-      "taskId": "recvcpmsDbPM9F",
-      "targetSprint": "9",
-      "targetStatus": "Ready for Test",
-      "targetSprintGoal": "Staging Passed",
-      "order": 21
-    },
-    "recvdmtYEGLNs2": {
-      "taskId": "recvdmtYEGLNs2",
-      "targetSprint": "9",
-      "targetStatus": "Ready for Test",
-      "targetSprintGoal": "Staging Passed",
-      "order": 22
-    },
-    "recveoOg7pXhLR": {
-      "taskId": "recveoOg7pXhLR",
-      "targetSprint": "9",
-      "targetStatus": "Not Started",
-      "targetSprintGoal": "Reviewing",
-      "order": 23
-    },
-    "recveoORVJmsUl": {
-      "taskId": "recveoORVJmsUl",
-      "targetSprint": "9",
-      "targetStatus": "Not Started",
-      "targetSprintGoal": "Reviewing",
-      "order": 24
-    },
-    "recveoPaiBxN3G": {
-      "taskId": "recveoPaiBxN3G",
-      "targetSprint": "9",
-      "targetStatus": "Not Started",
-      "targetSprintGoal": "Reviewing",
-      "order": 25
-    },
-    "recveoQpq5Oh3Y": {
-      "taskId": "recveoQpq5Oh3Y",
-      "targetSprint": "9",
-      "targetStatus": "Not Started",
-      "targetSprintGoal": "In Process",
-      "order": 26
-    },
-    "recveoRU0ibqcC": {
-      "taskId": "recveoRU0ibqcC",
-      "targetSprint": "9",
-      "targetStatus": "Not Started",
-      "targetSprintGoal": "Reviewing",
-      "order": 27
     }
   },
-  "sprint_relay_daily_todos": "{\"2026-03-23__Nguyễn Thảo Linh\":{\"date\":\"2026-03-23\",\"person\":\"Nguyễn Thảo Linh\",\"items\":[{\"taskId\":\"recv3K4CpAiZOQ\",\"addedAt\":\"2026-03-23T02:28:10.207Z\",\"order\":1},{\"taskId\":\"recvcpwOCxaAUr\",\"addedAt\":\"2026-03-23T02:28:10.847Z\",\"order\":2},{\"taskId\":\"recvaZJ8AYjnBj\",\"addedAt\":\"2026-03-23T02:29:05.727Z\",\"order\":3},{\"taskId\":\"recvaTSzccpO1N\",\"addedAt\":\"2026-03-23T02:29:16.383Z\",\"order\":4}]},\"2026-03-23__Nguyễn Văn Nam\":{\"date\":\"2026-03-23\",\"person\":\"Nguyễn Văn Nam\",\"items\":[{\"taskId\":\"recv3K4CpAiZOQ\",\"addedAt\":\"2026-03-23T02:28:10.207Z\",\"order\":1},{\"taskId\":\"recvcpwOCxaAUr\",\"addedAt\":\"2026-03-23T02:28:10.848Z\",\"order\":2},{\"taskId\":\"recvaZJ8AYjnBj\",\"addedAt\":\"2026-03-23T02:29:05.727Z\",\"order\":3},{\"taskId\":\"recvaTSzccpO1N\",\"addedAt\":\"2026-03-23T02:29:16.383Z\",\"order\":4}]},\"2026-03-23__Lưu Thị Dung\":{\"date\":\"2026-03-23\",\"person\":\"Lưu Thị Dung\",\"items\":[{\"taskId\":\"recv3K4CpAiZOQ\",\"addedAt\":\"2026-03-23T02:28:10.207Z\",\"order\":1},{\"taskId\":\"recvcpwOCxaAUr\",\"addedAt\":\"2026-03-23T02:28:10.848Z\",\"order\":2},{\"taskId\":\"recvaZJ8AYjnBj\",\"addedAt\":\"2026-03-23T02:29:05.727Z\",\"order\":3},{\"taskId\":\"recvaTSzccpO1N\",\"addedAt\":\"2026-03-23T02:29:16.383Z\",\"order\":4}]},\"2026-03-23__Trần Quý Đạt\":{\"date\":\"2026-03-23\",\"person\":\"Trần Quý Đạt\",\"items\":[{\"taskId\":\"recvehbwe2eAcI\",\"addedAt\":\"2026-03-23T02:30:33.495Z\",\"order\":1}]},\"2026-03-23__Đặng Minh Quân\":{\"date\":\"2026-03-23\",\"person\":\"Đặng Minh Quân\",\"items\":[{\"taskId\":\"recvehbwe2eAcI\",\"addedAt\":\"2026-03-23T02:30:33.495Z\",\"order\":1}]},\"2026-03-24__Nguyễn Thảo Linh\":{\"date\":\"2026-03-24\",\"person\":\"Nguyễn Thảo Linh\",\"items\":[{\"taskId\":\"recv3K4CpAiZOQ\",\"addedAt\":\"2026-03-24T02:29:27.793Z\",\"order\":1},{\"taskId\":\"recvaTSzccpO1N\",\"addedAt\":\"2026-03-24T02:29:29.705Z\",\"order\":2},{\"taskId\":\"recvaZJ8AYjnBj\",\"addedAt\":\"2026-03-24T02:29:32.488Z\",\"order\":3},{\"taskId\":\"recvcpwOCxaAUr\",\"addedAt\":\"2026-03-24T02:29:37.448Z\",\"order\":4}]},\"2026-03-24__Nguyễn Văn Nam\":{\"date\":\"2026-03-24\",\"person\":\"Nguyễn Văn Nam\",\"items\":[{\"taskId\":\"recv3K4CpAiZOQ\",\"addedAt\":\"2026-03-24T02:29:27.794Z\",\"order\":1},{\"taskId\":\"recvaTSzccpO1N\",\"addedAt\":\"2026-03-24T02:29:29.706Z\",\"order\":2},{\"taskId\":\"recvaZJ8AYjnBj\",\"addedAt\":\"2026-03-24T02:29:32.488Z\",\"order\":3},{\"taskId\":\"recvcpwOCxaAUr\",\"addedAt\":\"2026-03-24T02:29:37.448Z\",\"order\":4}]},\"2026-03-24__Lưu Thị Dung\":{\"date\":\"2026-03-24\",\"person\":\"Lưu Thị Dung\",\"items\":[{\"taskId\":\"recv3K4CpAiZOQ\",\"addedAt\":\"2026-03-24T02:29:27.794Z\",\"order\":1},{\"taskId\":\"recvaTSzccpO1N\",\"addedAt\":\"2026-03-24T02:29:29.706Z\",\"order\":2},{\"taskId\":\"recvaZJ8AYjnBj\",\"addedAt\":\"2026-03-24T02:29:32.488Z\",\"order\":3},{\"taskId\":\"recvcpwOCxaAUr\",\"addedAt\":\"2026-03-24T02:29:37.448Z\",\"order\":4}]},\"2026-03-24__Duyên NT\":{\"date\":\"2026-03-24\",\"person\":\"Duyên NT\",\"items\":[{\"taskId\":\"recveoORVJmsUl\",\"addedAt\":\"2026-03-24T02:31:11.200Z\",\"order\":1},{\"taskId\":\"recveoPaiBxN3G\",\"addedAt\":\"2026-03-24T02:31:39.360Z\",\"order\":2}]}}",
-  "sprint_relay_manual_sprint": "9",
-  "sprint_relay_sprint_config": "[{\"number\":\"7\",\"startDate\":\"2026-03-09\",\"endDate\":\"2026-03-13\"},{\"number\":\"8\",\"startDate\":\"2026-03-16\",\"endDate\":\"2026-03-21\"},{\"number\":\"9\",\"startDate\":\"2026-03-23\",\"endDate\":\"2026-03-27\"},{\"number\":\"10\",\"startDate\":\"2026-03-30\",\"endDate\":\"2026-04-04\"}]",
-  "next_sprint_plan_v2_9": {}
+  "sprint_relay_daily_todos": "{\"2026-04-09__Nguyễn Thảo Linh\":{\"date\":\"2026-04-09\",\"person\":\"Nguyễn Thảo Linh\",\"items\":[{\"taskId\":\"recvf32gykm4bu\",\"addedAt\":\"2026-04-09T01:52:25.907Z\",\"order\":1},{\"taskId\":\"recvfeDdV0Rh73\",\"addedAt\":\"2026-04-09T01:52:28.546Z\",\"order\":2},{\"taskId\":\"recvfk8QxwDX1i\",\"addedAt\":\"2026-04-09T01:52:29.130Z\",\"order\":3},{\"taskId\":\"recvfpUhkRNSeX\",\"addedAt\":\"2026-04-09T01:52:31.850Z\",\"order\":4},{\"taskId\":\"recvfpUsK53pSR\",\"addedAt\":\"2026-04-09T01:52:32.474Z\",\"order\":5}]},\"2026-04-09__Nguyễn Đình Hồng Phong\":{\"date\":\"2026-04-09\",\"person\":\"Nguyễn Đình Hồng Phong\",\"items\":[{\"taskId\":\"recvf32gykm4bu\",\"addedAt\":\"2026-04-09T01:52:25.907Z\",\"order\":1},{\"taskId\":\"recvfeDdV0Rh73\",\"addedAt\":\"2026-04-09T01:52:28.546Z\",\"order\":2},{\"taskId\":\"recvfk8QxwDX1i\",\"addedAt\":\"2026-04-09T01:52:29.130Z\",\"order\":3}]},\"2026-04-09__Lưu Thị Dung\":{\"date\":\"2026-04-09\",\"person\":\"Lưu Thị Dung\",\"items\":[{\"taskId\":\"recvf32gykm4bu\",\"addedAt\":\"2026-04-09T01:52:25.907Z\",\"order\":1},{\"taskId\":\"recvfeDdV0Rh73\",\"addedAt\":\"2026-04-09T01:52:28.546Z\",\"order\":2},{\"taskId\":\"recvfk8QxwDX1i\",\"addedAt\":\"2026-04-09T01:52:29.130Z\",\"order\":3},{\"taskId\":\"recvfpUhkRNSeX\",\"addedAt\":\"2026-04-09T01:52:31.850Z\",\"order\":4},{\"taskId\":\"recvfpUsK53pSR\",\"addedAt\":\"2026-04-09T01:52:32.474Z\",\"order\":5}]},\"2026-04-09__Trần Quý Đạt\":{\"date\":\"2026-04-09\",\"person\":\"Trần Quý Đạt\",\"items\":[{\"taskId\":\"recvfB2y0QM0n8\",\"addedAt\":\"2026-04-09T01:54:18.449Z\",\"order\":1},{\"taskId\":\"recvfYCWALR7mg\",\"addedAt\":\"2026-04-09T01:54:29.586Z\",\"order\":2},{\"taskId\":\"recvf2zRMuqs8i\",\"addedAt\":\"2026-04-09T01:54:45.859Z\",\"order\":3}]},\"2026-04-17__Trần Quý Đạt\":{\"date\":\"2026-04-17\",\"person\":\"Trần Quý Đạt\",\"items\":[{\"taskId\":\"recvfB2y0QM0n8\",\"addedAt\":\"2026-04-17T02:44:47.640Z\",\"order\":1},{\"taskId\":\"recvfAWx0ZIxAO\",\"addedAt\":\"2026-04-17T02:44:54.328Z\",\"order\":2},{\"taskId\":\"recvgJbT6vqIb7\",\"addedAt\":\"2026-04-17T02:45:00.024Z\",\"order\":3}]},\"2026-04-17__Đặng Minh Quân\":{\"date\":\"2026-04-17\",\"person\":\"Đặng Minh Quân\",\"items\":[{\"taskId\":\"recvfAWx0ZIxAO\",\"addedAt\":\"2026-04-17T02:49:17.015Z\",\"order\":1}]},\"2026-04-17__Nguyễn Đình Hồng Phong\":{\"date\":\"2026-04-17\",\"person\":\"Nguyễn Đình Hồng Phong\",\"items\":[{\"taskId\":\"recvfB8PI0dwdN\",\"addedAt\":\"2026-04-17T03:19:26.737Z\",\"order\":1},{\"taskId\":\"recvfjmljOFEYp\",\"addedAt\":\"2026-04-17T03:20:38.896Z\",\"order\":2},{\"taskId\":\"recvfgvIFzrXVT\",\"addedAt\":\"2026-04-17T03:20:51.263Z\",\"order\":3}]},\"2026-04-17__Hoàng Ngọc Thuận\":{\"date\":\"2026-04-17\",\"person\":\"Hoàng Ngọc Thuận\",\"items\":[{\"taskId\":\"recvfgvIFzrXVT\",\"addedAt\":\"2026-04-17T03:20:51.263Z\",\"order\":2},{\"taskId\":\"recvgOZq3SUfIq\",\"addedAt\":\"2026-04-17T03:23:15.183Z\",\"order\":3}]}}",
+  "sprint_relay_manual_sprint": "11",
+  "sprint_relay_archived_tasks": "[{\"taskId\":\"recvfYD6HCf3T5\",\"taskName\":\"Giới hạn cho các tính năng AI Agents\",\"archivedFrom\":\"11\",\"lastStatus\":\"In Process\",\"person\":\"Phạm Đức Toàn,Đặng Minh Quân,Trần Quý Đạt\",\"archivedAt\":\"2026-04-18T09:09:08.136Z\"},{\"taskId\":\"recvaMMmcFRDwE\",\"taskName\":\"Tính năng quản lý dự án PRO\",\"archivedFrom\":\"11\",\"lastStatus\":\"Pending\",\"person\":\"Nguyễn Đình Hồng Phong,Đặng Minh Quân,Nguyễn Thảo Linh\",\"archivedAt\":\"2026-04-18T09:07:23.992Z\"},{\"taskId\":\"recvfjmljOFEYp\",\"taskName\":\"Quản lý License và mức độ sử dụng của từng user (trao đổi thêm với Đức)\",\"archivedFrom\":\"11\",\"lastStatus\":\"Pending\",\"person\":\"Nguyễn Anh Quân,Hoàng Ngọc Thuận,Nguyễn Đình Hồng Phong\",\"archivedAt\":\"2026-04-18T09:07:12.657Z\"},{\"taskId\":\"recvfYDd6suWgS\",\"taskName\":\"[FE] Login với Google\",\"archivedFrom\":\"11\",\"lastStatus\":\"In Process\",\"person\":\"Hoàng Ngọc Thuận\",\"archivedAt\":\"2026-04-18T09:06:05.984Z\"},{\"taskId\":\"recvg9Z8FEs3Dl\",\"taskName\":\"Task mẫu\",\"archivedFrom\":\"11\",\"lastStatus\":\"Not Started\",\"person\":\"\",\"archivedAt\":\"2026-04-18T09:11:08.272Z\"}]"
 }

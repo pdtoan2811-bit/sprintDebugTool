@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Database, Download, Upload, Trash2, AlertTriangle, FileText, CheckCircle2, X } from 'lucide-react';
+import { Archive, Database, Download, Upload, Trash2, AlertTriangle, FileText, CheckCircle2, X, RotateCcw } from 'lucide-react';
 import {
     Sheet,
     SheetContent,
@@ -15,8 +15,14 @@ import { useNotes } from '@/lib/hooks/useNotes';
 import { useMeetingNotes } from '@/lib/hooks/useMeetingNotes';
 import { useHighRisk } from '@/lib/hooks/useHighRisk';
 import { useSprintConfig } from '@/lib/hooks/useSprintConfig';
+import { ArchivedTaskEntry } from '@/lib/hooks/useArchivedTasks';
 
-export function DataManagementModal() {
+interface DataManagementModalProps {
+    archivedTasks: ArchivedTaskEntry[];
+    onUnarchiveTask: (taskId: string) => void;
+}
+
+export function DataManagementModal({ archivedTasks, onUnarchiveTask }: DataManagementModalProps) {
     const { notes, isLoaded: isNotesLoaded } = useNotes();
     const { getAllNotes: getMeetingNotes, isLoaded: isMeetingNotesLoaded } = useMeetingNotes();
     const { highRiskIds, isLoaded: isHighRiskLoaded } = useHighRisk();
@@ -242,6 +248,65 @@ export function DataManagementModal() {
                                     <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                                 </div>
                                 System mismatch: {importErrorMsg}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="h-px bg-border/50" />
+
+                    {/* Archived Tasks */}
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between px-1">
+                            <div className="flex items-center gap-2">
+                                <Archive className="h-3.5 w-3.5 text-violet-500" />
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.15em] text-foreground/80">Archived Tasks</h3>
+                            </div>
+                            <span className="text-[10px] font-black text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/30 px-2 py-0.5 rounded-full border border-violet-200 dark:border-violet-800/50">
+                                {archivedTasks.length}
+                            </span>
+                        </div>
+                        <p className="text-[10px] font-bold text-muted-foreground/50 leading-relaxed px-1">
+                            Tasks hidden from all views. Google Sheet data is never touched — restore anytime to bring them back.
+                        </p>
+
+                        {archivedTasks.length === 0 ? (
+                            <div className="text-center py-8 bg-secondary/20 rounded-xl border border-dashed border-border/60">
+                                <Archive className="w-8 h-8 mx-auto mb-3 opacity-10 text-violet-500" />
+                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30">No archived tasks</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
+                                {archivedTasks
+                                    .sort((a, b) => new Date(b.archivedAt).getTime() - new Date(a.archivedAt).getTime())
+                                    .map((entry) => (
+                                    <div
+                                        key={entry.taskId}
+                                        className="group flex items-center gap-3 px-3 py-2.5 rounded-xl border border-border/50 bg-secondary/20 hover:bg-secondary/40 transition-all shadow-sm"
+                                    >
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-[9px] font-black font-mono text-muted-foreground/50 uppercase tracking-tight">{entry.taskId}</span>
+                                                <span className="text-[8px] font-bold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/30 px-1.5 py-0.5 rounded border border-violet-200/50 dark:border-violet-800/30">
+                                                    {entry.lastStatus}
+                                                </span>
+                                            </div>
+                                            <p className="text-[11px] font-bold text-foreground truncate leading-tight">{entry.taskName}</p>
+                                            <div className="flex items-center gap-3 mt-1">
+                                                <span className="text-[9px] font-bold text-muted-foreground/40">{entry.person}</span>
+                                                <span className="text-[9px] font-bold text-muted-foreground/30">
+                                                    Archived {new Date(entry.archivedAt).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => onUnarchiveTask(entry.taskId)}
+                                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-violet-700 transition-all active:scale-95 shadow-md shadow-violet-600/20 opacity-0 group-hover:opacity-100"
+                                        >
+                                            <RotateCcw className="w-3 h-3" />
+                                            Restore
+                                        </button>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { PersonTimeline, TimelineSegment, RawLogEvent, MeetingNote } from '@/lib/types';
 import { fetchLogs, transformLogsToSegments } from '@/lib/api';
 import { analyzeAllTasks, getPersonSummaries } from '@/lib/workflow-engine';
+import { hasMetSprintGoal } from '@/lib/utils';
 import { StandupInspector } from '@/components/inspector/StandupInspector';
 import { PersonnelOverview } from '@/components/dashboard/PersonnelOverview';
 import { TaskOverview } from '@/components/dashboard/TaskOverview';
@@ -17,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { useHighRisk } from '@/lib/hooks/useHighRisk';
 import { useMeetingNotes } from '@/lib/hooks/useMeetingNotes';
 import { useSprintStart } from '@/lib/hooks/useSprintStart';
+import { useArchivedTasks } from '@/lib/hooks/useArchivedTasks';
 import { format } from 'date-fns';
 import { useSprintConfig } from '@/lib/hooks/useSprintConfig';
 import { SprintSettings } from '@/components/inspector/SprintSettings';
@@ -65,6 +67,7 @@ export default function Home() {
 
   const { highRiskIds, toggleHighRisk, isHighRisk } = useHighRisk();
   const { addNote, updateNote, deleteNote, getNotesForTask, notes } = useMeetingNotes();
+  const { archivedTasks, archivedIds, archiveTask, unarchiveTask, isArchived } = useArchivedTasks();
   const {
     getSprintStartSnapshot,
     saveOverride,
@@ -108,18 +111,24 @@ export default function Home() {
   // ── Workflow Analysis ──────────────────────────────────────────
   const analyses = useMemo(() => {
     const all = analyzeAllTasks(rawLogs, notes);
-    if (!activeSprint || activeSprint === 'auto') return all;
-    
     const filtered: Record<string, typeof all[string]> = {};
     for (const [id, a] of Object.entries(all)) {
-      if (String(a.sprint) === String(activeSprint)) {
-        filtered[id] = a;
-      }
+      // Filter by sprint
+      if (activeSprint && activeSprint !== 'auto' && String(a.sprint) !== String(activeSprint)) continue;
+      // Filter out archived tasks
+      if (archivedIds.has(id)) continue;
+      filtered[id] = a;
     }
     return filtered;
-  }, [rawLogs, notes, activeSprint]);
+  }, [rawLogs, notes, activeSprint, archivedIds]);
+
+  // ── Filtered raw logs (exclude archived tasks) ─────────────────
+  const filteredRawLogs = useMemo(() =>
+    rawLogs.filter(log => !archivedIds.has(log.taskId)),
+    [rawLogs, archivedIds]
+  );
   
-  const personSummaries = useMemo(() => getPersonSummaries(rawLogs, analyses), [rawLogs, analyses]);
+  const personSummaries = useMemo(() => getPersonSummaries(filteredRawLogs, analyses), [filteredRawLogs, analyses]);
   const allPersons = useMemo(
     () => Array.from(new Set(data.map((d) => d.person))).sort(),
     [data]
@@ -128,9 +137,14 @@ export default function Home() {
   // ── Stats ──────────────────────────────────────────────────────
   const stats = useMemo(() => {
     const taskList = Object.values(analyses);
+    const tasksWithGoal = taskList.filter((t) => t.sprintGoal && t.sprintGoal.trim() !== '');
+    const metGoal = tasksWithGoal.filter((t) => hasMetSprintGoal(t.currentStatus, t.sprintGoal)).length;
+    const total = tasksWithGoal.length;
+    const goalPercent = total > 0 ? Math.round((metGoal / total) * 100) : 0;
     return {
-      total: taskList.length,
-      metGoal: taskList.filter((t) => t.sprintGoal && t.currentStatus === t.sprintGoal).length,
+      total,
+      metGoal,
+      goalPercent,
       bottlenecked: taskList.filter((t) => ['Waiting to Integrate', 'Reviewing', 'Reprocess'].includes(t.currentStatus)).length,
       doomLoops: taskList.filter((t) => t.doomLoopCount > 0).length,
       stale: taskList.filter((t) => t.isStale).length,
@@ -230,7 +244,10 @@ export default function Home() {
 
           <div className="h-4 w-px bg-border mx-1" />
           
-          <DataManagementModal />
+          <DataManagementModal
+            archivedTasks={archivedTasks}
+            onUnarchiveTask={unarchiveTask}
+          />
           
           <button
             onClick={() => setShowSettings(true)}
@@ -243,9 +260,9 @@ export default function Home() {
       </header>
 
       {/* ── Stats Bar ──────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
         <div className="px-4 py-3 bg-card border border-border rounded-xl flex flex-col shadow-sm hover:shadow-md transition-shadow group">
-          <span className="text-muted-foreground text-[9px] uppercase tracking-widest font-black opacity-50 group-hover:opacity-100 transition-opacity">Total Tasks</span>
+          <span className="text-muted-foreground text-[9px] uppercase tracking-widest font-black opacity-50 group-hover:opacity-100 transition-opacity">Sprint Tasks</span>
           <span className="text-3xl font-black font-mono text-foreground mt-2">{stats.total}</span>
         </div>
         <div className={`px-4 py-3 rounded-xl flex flex-col border shadow-sm transition-all hover:shadow-md ${stats.metGoal > 0 ? 'bg-emerald-50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/50' : 'bg-card border-border'}`}>
@@ -254,6 +271,29 @@ export default function Home() {
           </span>
           <span className={`text-2xl font-black font-mono mt-1 ${stats.metGoal > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}>
             {stats.metGoal}
+          </span>
+        </div>
+        <div className={`px-4 py-3 rounded-xl flex flex-col border shadow-sm transition-all hover:shadow-md relative overflow-hidden ${
+          stats.goalPercent >= 80 ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800/50'
+          : stats.goalPercent >= 50 ? 'bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800/50'
+          : 'bg-rose-50 border-rose-200 dark:bg-rose-950/20 dark:border-rose-800/50'
+        }`}>
+          {/* Progress bar background */}
+          <div
+            className={`absolute bottom-0 left-0 h-1 rounded-full transition-all duration-700 ${
+              stats.goalPercent >= 80 ? 'bg-emerald-400' : stats.goalPercent >= 50 ? 'bg-amber-400' : 'bg-rose-400'
+            }`}
+            style={{ width: `${stats.goalPercent}%` }}
+          />
+          <span className="text-muted-foreground text-[9px] uppercase tracking-widest font-black flex items-center gap-1.5">
+            <Target className="w-3 h-3 text-indigo-500" /> Goal %
+          </span>
+          <span className={`text-2xl font-black font-mono mt-1 ${
+            stats.goalPercent >= 80 ? 'text-emerald-600 dark:text-emerald-400'
+            : stats.goalPercent >= 50 ? 'text-amber-600 dark:text-amber-400'
+            : 'text-rose-600 dark:text-rose-400'
+          }`}>
+            {stats.goalPercent}%
           </span>
         </div>
         <div className={`px-4 py-3 rounded-xl flex flex-col border shadow-sm transition-all hover:shadow-md ${stats.bottlenecked > 0 ? 'bg-amber-50 border-amber-100 dark:bg-amber-950/20 dark:border-amber-900/50' : 'bg-card border-border'}`}>
@@ -334,7 +374,7 @@ export default function Home() {
               ) : (
                 <div className="animate-in fade-in duration-700">
                   {activeTab === 'dailyMeeting' && (() => {
-                    const snapshot = getSprintStartSnapshot(activeSprint || '', rawLogs);
+                    const snapshot = getSprintStartSnapshot(activeSprint || '', filteredRawLogs);
                     const snapshotMap: Record<string, string> = {};
                     snapshot.forEach(entry => {
                       snapshotMap[entry.taskId] = entry.confirmedStatus;
@@ -343,7 +383,7 @@ export default function Home() {
                       <DailyMeetingView
                         analyses={analyses}
                         meetingNotes={notes}
-                        rawLogs={rawLogs}
+                        rawLogs={filteredRawLogs}
                         sprintStartSnapshot={snapshotMap}
                         highRiskIds={highRiskIds}
                         onTaskClick={handleTaskClick}
@@ -354,14 +394,14 @@ export default function Home() {
                   {activeTab === 'nextSprintPlanning' && (
                     <NextSprintPlanningView
                       analyses={analyses}
-                      rawLogs={rawLogs}
+                      rawLogs={filteredRawLogs}
                       activeSprint={activeSprint || ''}
                       onTaskClick={handleTaskClick}
                     />
                   )}
                   {activeTab === 'dailyRecap' && (
                     <DailyRecapView
-                      rawLogs={rawLogs}
+                      rawLogs={filteredRawLogs}
                       sprintStartDate={configs.find(c => c.number === activeSprint)?.startDate}
                       onTaskClick={handleTaskClick}
                     />
@@ -382,7 +422,7 @@ export default function Home() {
                   )}
                   {activeTab === 'sprintStart' && (
                     <SprintStartManager
-                      rawLogs={rawLogs}
+                      rawLogs={filteredRawLogs}
                       selectedSprint={activeSprint || ''}
                       getSprintStartSnapshot={getSprintStartSnapshot}
                       onSaveOverride={saveOverride}
@@ -449,6 +489,21 @@ export default function Home() {
         onUpdateMeetingNote={updateNote}
         onDeleteMeetingNote={(id) => selectedSegment && deleteNote(selectedSegment.taskId, id)}
         allPersons={allPersons}
+        isArchived={selectedSegment ? isArchived(selectedSegment.taskId) : false}
+        onArchiveTask={(taskId) => {
+          const task = currentAnalysis;
+          if (task) {
+            archiveTask({
+              taskId: task.taskId,
+              taskName: task.taskName,
+              archivedFrom: activeSprint || '',
+              lastStatus: task.currentStatus,
+              person: task.currentPerson,
+            });
+            setSelectedSegment(null);
+          }
+        }}
+        onUnarchiveTask={unarchiveTask}
       />
 
       {/* Settings Modal */}
